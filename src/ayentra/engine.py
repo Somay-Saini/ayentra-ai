@@ -22,12 +22,20 @@ from hypothesis import HealthCheck, Phase, given, seed, settings, strategies as 
 
 from ayentra.ast_analyzer import ASTAnalysisResult, analyze_source
 from ayentra.concurrency import InterleavingViolation, explore_interleavings
-from ayentra.contracts import InvariantSpec, load_toml_invariants
+from ayentra.contracts import (
+    InvariantSpec,
+    SecurityPrincipal,
+    StateSnapshot,
+    TransactionPolicy,
+    TransitionSpec,
+    load_toml_invariants,
+    load_toml_transitions,
+)
 
 
 @dataclass
 class InvariantViolation:
-    invariant: InvariantSpec
+    invariant: InvariantSpec | TransitionSpec
     verification_method: str
     failing_target: str
     counterexample: dict[str, Any]
@@ -49,6 +57,7 @@ class EngineCheckResult:
     seed: int
     duration_ms: float
     domain_summary: dict[str, dict[str, str]] = field(default_factory=dict)
+    transitions_checked: list[TransitionSpec] = field(default_factory=list)
 
 
 _SAFE_BUILTINS = {
@@ -64,6 +73,11 @@ _SAFE_BUILTINS = {
     "float": float,
     "str": str,
     "bool": bool,
+    "set": set,
+    "list": list,
+    "dict": dict,
+    "tuple": tuple,
+    "sorted": sorted,
     "Decimal": Decimal,
     "date": date,
     "datetime": datetime,
@@ -76,6 +90,7 @@ _SAFE_METHOD_NAMES = {
     "get", "startswith", "endswith", "split", "count", "replace", "join",
     "find", "rfind", "index", "isalnum", "isalpha", "isdigit", "isnumeric",
     "isspace", "isoformat", "total_seconds",
+    "issubset", "issuperset", "union", "intersection", "difference",
 }
 
 
@@ -145,7 +160,9 @@ def run_verification_engine(
     module = load_module_from_path(path)
 
     toml_invariants = load_toml_invariants(path.parent / "ayentra.toml", str(path))
+    toml_transitions = load_toml_transitions(path.parent / "ayentra.toml", str(path))
     invariants_checked: list[InvariantSpec] = []
+    transitions_checked: list[TransitionSpec] = []
     violations: list[InvariantViolation] = []
     total_cases = 0
     domain_summary: dict[str, dict[str, str]] = {}
@@ -157,7 +174,13 @@ def run_verification_engine(
         for t_spec in toml_invariants:
             if t_spec.target_name == obj.__qualname__:
                 raw_specs.append(t_spec)
-        if not raw_specs:
+
+        raw_transitions: list[TransitionSpec] = list(getattr(obj, "__ayentra_transitions__", []))
+        for tr_spec in toml_transitions:
+            if tr_spec.target_name == obj.__qualname__ or tr_spec.target_name.startswith(f"{obj.__qualname__}."):
+                raw_transitions.append(tr_spec)
+
+        if not raw_specs and not raw_transitions:
             continue
 
         resolved_specs: list[InvariantSpec] = []
@@ -177,6 +200,24 @@ def run_verification_engine(
             )
         invariants_checked.extend(resolved_specs)
 
+        resolved_transitions: list[TransitionSpec] = []
+        for tr in raw_transitions:
+            exact_line = ast_res.explicit_decorator_lines.get((tr.target_name, tr.expression), tr.lineno)
+            resolved_transitions.append(
+                TransitionSpec(
+                    expression=tr.expression,
+                    target_name=tr.target_name,
+                    kind=tr.kind,
+                    lineno=exact_line,
+                    filepath=str(path),
+                    policy=tr.policy,
+                    allowed_fields=tr.allowed_fields,
+                    description=tr.description,
+                    domain_bounds=tr.domain_bounds,
+                )
+            )
+        transitions_checked.extend(resolved_transitions)
+
         if inspect.isclass(obj):
             conc_specs = [s for s in resolved_specs if s.check_concurrency]
             if conc_specs:
@@ -187,7 +228,7 @@ def run_verification_engine(
                     continue
 
             c_viol_prop, cases, bounds_desc = _check_class_properties(
-                obj, resolved_specs, seed_val=seed_val, max_examples=max_examples
+                obj, resolved_specs, resolved_transitions, seed_val=seed_val, max_examples=max_examples
             )
             total_cases += cases
             domain_summary[obj.__qualname__] = bounds_desc
@@ -196,7 +237,7 @@ def run_verification_engine(
 
         elif inspect.isfunction(obj) or inspect.iscoroutinefunction(obj):
             f_viol, cases, bounds_desc = _check_function_properties(
-                obj, resolved_specs, seed_val=seed_val, max_examples=max_examples
+                obj, resolved_specs, resolved_transitions, seed_val=seed_val, max_examples=max_examples
             )
             total_cases += cases
             domain_summary[obj.__qualname__] = bounds_desc
@@ -213,6 +254,7 @@ def run_verification_engine(
         seed=seed_val,
         duration_ms=duration_ms,
         domain_summary=domain_summary,
+        transitions_checked=transitions_checked,
     )
 
 
@@ -380,6 +422,51 @@ def _strategy_for_annotation(
     return st.integers(min_value=-100, max_value=100), "int in [-100, 100]"
 
 
+def _value_strategy_for_field(field_name: str) -> st.SearchStrategy[Any]:
+    fn_lower = field_name.lower()
+    if any(k in fn_lower for k in ("status", "state", "phase")):
+        return st.sampled_from(["PENDING", "IN_PROGRESS", "VERIFIED", "REJECTED", "APPROVED"])
+    if any(k in fn_lower for k in ("reward", "usd", "amount", "points", "balance", "price", "count")):
+        return st.sampled_from([0, 50, 1000, 25000, 1333337, -10, 10**18])
+    if any(k in fn_lower for k in ("notes", "desc", "comment", "message", "title", "text")):
+        return st.sampled_from(["", "Passed benchmarks", "Approved by team", "Needs review"])
+    if any(k in fn_lower for k in ("id", "account", "address", "eval", "user")):
+        return st.sampled_from(["eval-42", "acc-01", "agent-01", "0x1234", ""])
+    if any(k in fn_lower for k in ("flag", "is_", "has_", "enabled", "committed")):
+        return st.booleans()
+    return st.one_of(
+        st.integers(min_value=-100, max_value=100),
+        st.text(alphabet="abcdef1234567890", min_size=1, max_size=10),
+    )
+
+
+def _compound_payload_strategy(
+    known_fields_by_role: dict[str, list[str]],
+) -> tuple[st.SearchStrategy[dict[str, Any]], str]:
+    all_fields: set[str] = set()
+    for fields in known_fields_by_role.values():
+        all_fields.update(fields)
+    if not all_fields:
+        all_fields = {"status", "reviewer_notes", "reward_usd", "payout_account", "evaluation_id"}
+
+    sorted_fields = sorted(all_fields)
+    field_strats = {f: _value_strategy_for_field(f) for f in sorted_fields}
+
+    subsets_strat = st.sets(st.sampled_from(sorted_fields), min_size=1, max_size=len(sorted_fields))
+    payload_strat = subsets_strat.flatmap(
+        lambda chosen: st.fixed_dictionaries({k: field_strats[k] for k in chosen})
+    )
+
+    adversarial_strat = st.fixed_dictionaries({
+        "status": st.sampled_from(["VERIFIED", "REJECTED"]),
+        "reward_usd": st.sampled_from([25000, 1333337]),
+        "injected_privileged_key": st.just("escalated"),
+    })
+
+    combined = st.one_of(payload_strat, adversarial_strat)
+    return combined, f"Compound mutation payloads with fields {sorted_fields}"
+
+
 def _strategy_for_param(
     param: inspect.Parameter,
     domain_bounds: dict[str, Any],
@@ -406,6 +493,15 @@ def _strategy_for_param(
                 max_size=3,
             ).map(lambda pairs: ",".join(f"{k}={v}" for k, v in pairs))
             return strat, "telemetry key=value strings (including NaN/Inf/empty-key edge cases)"
+
+    if name in ("principal", "actor", "caller", "user") or param.annotation in (SecurityPrincipal, "SecurityPrincipal"):
+        roles = domain_bounds.get("__roles__", ["reviewer", "admin", "auditor", "user"])
+        strat = st.sampled_from(roles).map(lambda r: SecurityPrincipal(principal_id=f"agent-{r}-01", role=r))
+        return strat, f"SecurityPrincipal across roles {roles}"
+
+    if name in ("payload", "data", "updates", "changes") or (param.annotation in (dict, "dict") or get_origin(param.annotation) is dict):
+        if "__known_fields__" in domain_bounds:
+            return _compound_payload_strategy(domain_bounds["__known_fields__"])
 
     return _strategy_for_annotation(param.annotation, ns=ns)
 
@@ -465,6 +561,15 @@ def _snapshot_obj(instance: Any) -> dict[str, Any]:
     return snap
 
 
+def _business_state_equal(snap1: dict[str, Any], snap2: dict[str, Any]) -> tuple[bool, list[str]]:
+    audit_keys = {"audit_sink", "audit_log", "audit_records", "logs", "events", "_audit_sink"}
+    diff_keys = [
+        k for k in set(snap1) | set(snap2)
+        if k not in audit_keys and snap1.get(k) != snap2.get(k)
+    ]
+    return len(diff_keys) == 0, diff_keys
+
+
 def _instantiate_class(cls: type) -> Any:
     sig = inspect.signature(cls.__init__)
     kwargs: dict[str, Any] = {}
@@ -489,6 +594,16 @@ def _instantiate_class(cls: type) -> Any:
             kwargs[name] = b""
         elif param.annotation in (bytearray, "bytearray"):
             kwargs[name] = bytearray()
+        elif param.annotation in (str, "str"):
+            kwargs[name] = f"test_{name}"
+        elif param.annotation in (bool, "bool"):
+            kwargs[name] = True
+        elif param.annotation in (list, "list"):
+            kwargs[name] = []
+        elif param.annotation in (dict, "dict"):
+            kwargs[name] = {}
+        elif param.annotation in (set, "set"):
+            kwargs[name] = set()
         else:
             kwargs[name] = 100
     return cls(**kwargs)
@@ -497,10 +612,12 @@ def _instantiate_class(cls: type) -> Any:
 def _check_class_properties(
     cls: type,
     invariants: list[InvariantSpec],
+    transitions: list[TransitionSpec] | None = None,
     *,
     seed_val: int,
     max_examples: int,
 ) -> tuple[InvariantViolation | None, int, dict[str, str]]:
+    transitions = transitions or []
     public_methods = [
         (name, fn)
         for name, fn in inspect.getmembers(cls, predicate=inspect.isfunction)
@@ -512,6 +629,17 @@ def _check_class_properties(
     merged_bounds: dict[str, Any] = {}
     for inv in invariants:
         merged_bounds.update(inv.domain_bounds)
+    for tr in transitions:
+        merged_bounds.update(tr.domain_bounds)
+
+    known_fields_by_role: dict[str, list[str]] = {}
+    for tr in transitions:
+        for r_name, r_fields in tr.allowed_fields.items():
+            if r_name not in known_fields_by_role:
+                known_fields_by_role[r_name] = []
+            for f in r_fields:
+                if f not in known_fields_by_role[r_name]:
+                    known_fields_by_role[r_name].append(f)
 
     method_strats: list[st.SearchStrategy[tuple[str, dict[str, Any]]]] = []
     bounds_desc: dict[str, str] = {}
@@ -520,6 +648,10 @@ def _check_class_properties(
     for m_name, fn in public_methods:
         m_bounds = dict(merged_bounds)
         m_bounds.update(getattr(fn, "__ayentra_domain__", {}))
+        if known_fields_by_role:
+            m_bounds.setdefault("__known_fields__", known_fields_by_role)
+            m_bounds.setdefault("__roles__", list(known_fields_by_role.keys()))
+
         sig = inspect.signature(fn)
         kw_strats: dict[str, st.SearchStrategy[Any]] = {}
         for p_name, param in sig.parameters.items():
@@ -553,33 +685,152 @@ def _check_class_properties(
         for m_name, kwargs in call_seq:
             arg_str = ", ".join(f"{k}={v!r}" for k, v in kwargs.items())
             steps_executed.append(f"{cls.__name__}.{m_name}({arg_str})")
+
+            pre_call_snap = _snapshot_obj(instance)
+            old_snap = StateSnapshot(pre_call_snap)
+
+            principal = kwargs.get("principal")
+            payload = kwargs.get("payload", kwargs.get("data", kwargs.get("updates", kwargs)))
+            role = getattr(principal, "role", "default") if principal else "default"
+
+            call_failed = False
+            exc_raised: Exception | None = None
+            res = None
             try:
                 m_fn = getattr(instance, m_name)
                 if inspect.iscoroutinefunction(m_fn):
-                    asyncio.run(m_fn(**kwargs))
+                    res = asyncio.run(m_fn(**kwargs))
                 else:
-                    m_fn(**kwargs)
-            except ValueError:
-                # Explicit validation guard rejected invalid input; verify state remained valid
-                pass
+                    res = m_fn(**kwargs)
+            except (ValueError, PermissionError) as exc:
+                call_failed = True
+                exc_raised = exc
+            except Exception as exc:
+                call_failed = True
+                exc_raised = exc
 
+            post_call_snap = _snapshot_obj(instance)
+
+            applied_fields: list[str] = []
+            if isinstance(res, dict) and "applied" in res and isinstance(res["applied"], list):
+                applied_fields = [str(x) for x in res["applied"]]
+            elif isinstance(payload, dict):
+                applied_fields = [k for k in payload.keys() if k in post_call_snap and post_call_snap.get(k) == payload.get(k)]
+            else:
+                applied_fields = [k for k in post_call_snap.keys() if post_call_snap.get(k) != pre_call_snap.get(k)]
+
+            # Check transition invariants and transaction policies
+            for tr in transitions:
+                if tr.target_name not in (cls.__qualname__, f"{cls.__qualname__}.{m_name}"):
+                    continue
+
+                allowed_for_role = set(tr.allowed_fields.get(role, [])) if tr.allowed_fields else None
+
+                if tr.policy == TransactionPolicy.STRICT_ATOMIC:
+                    if allowed_for_role is not None and isinstance(payload, dict):
+                        attempted = set(payload.keys())
+                        unauthorized = attempted - allowed_for_role
+                        if unauthorized:
+                            if not call_failed:
+                                last_failure.clear()
+                                last_failure.update({
+                                    "invariant": tr,
+                                    "method": m_name,
+                                    "call_seq": [{"method": m, "args": _serialize_val(a)} for m, a in call_seq[:len(steps_executed)]],
+                                    "steps": list(steps_executed),
+                                    "before": pre_call_snap,
+                                    "after": post_call_snap,
+                                    "policy": "strict_atomic",
+                                    "rationale": f"STRICT_ATOMIC policy violated: Method accepted unauthorized fields {sorted(unauthorized)} for role '{role}' without raising an authorization error.",
+                                })
+                                raise AssertionError(f"STRICT_ATOMIC policy violated: Method accepted unauthorized fields {sorted(unauthorized)} for role '{role}'")
+                            else:
+                                is_equal, leaked = _business_state_equal(pre_call_snap, post_call_snap)
+                                if not is_equal:
+                                    last_failure.clear()
+                                    last_failure.update({
+                                        "invariant": tr,
+                                        "method": m_name,
+                                        "call_seq": [{"method": m, "args": _serialize_val(a)} for m, a in call_seq[:len(steps_executed)]],
+                                        "steps": list(steps_executed),
+                                        "before": pre_call_snap,
+                                        "after": post_call_snap,
+                                        "policy": "strict_atomic",
+                                        "rationale": f"Partial Write Invariant Breach (Missing Rollback): Method failed with {type(exc_raised).__name__} on unauthorized fields {sorted(unauthorized)}, but leaked partial state changes to {leaked}.",
+                                    })
+                                    raise AssertionError(f"Partial Write Invariant Breach (Missing Rollback): Leaked fields {leaked}")
+                    else:
+                        if call_failed:
+                            is_equal, leaked = _business_state_equal(pre_call_snap, post_call_snap)
+                            if not is_equal:
+                                last_failure.clear()
+                                last_failure.update({
+                                    "invariant": tr,
+                                    "method": m_name,
+                                    "call_seq": [{"method": m, "args": _serialize_val(a)} for m, a in call_seq[:len(steps_executed)]],
+                                    "steps": list(steps_executed),
+                                    "before": pre_call_snap,
+                                    "after": post_call_snap,
+                                    "policy": "strict_atomic",
+                                    "rationale": f"Partial Write Invariant Breach: Failed with {type(exc_raised).__name__} but leaked partial changes to {leaked}.",
+                                })
+                                raise AssertionError(f"Partial Write Invariant Breach: Leaked fields {leaked}")
+
+                elif tr.policy == TransactionPolicy.SELECTIVE_DROP:
+                    if allowed_for_role is not None and isinstance(payload, dict):
+                        attempted = set(payload.keys())
+                        unauthorized = attempted - allowed_for_role
+                        unauth_mutated = [f for f in unauthorized if f in post_call_snap and post_call_snap.get(f) != pre_call_snap.get(f)]
+                        if unauth_mutated:
+                            last_failure.clear()
+                            last_failure.update({
+                                "invariant": tr,
+                                "method": m_name,
+                                "call_seq": [{"method": m, "args": _serialize_val(a)} for m, a in call_seq[:len(steps_executed)]],
+                                "steps": list(steps_executed),
+                                "before": pre_call_snap,
+                                "after": post_call_snap,
+                                "policy": "selective_drop",
+                                "rationale": f"SELECTIVE_DROP policy violated: Unauthorized fields {unauth_mutated} were persisted to state for role '{role}'.",
+                            })
+                            raise AssertionError(f"SELECTIVE_DROP policy violated: Unauthorized fields {unauth_mutated} were persisted")
+
+                if not call_failed:
+                    ctx = {
+                        "self": instance,
+                        "old": old_snap,
+                        "principal": principal,
+                        "applied_fields": applied_fields,
+                        "payload": payload,
+                        "result": res,
+                    }
+                    ok = _eval_expr(tr.expression, ctx)
+                    if not ok:
+                        last_failure.clear()
+                        last_failure.update({
+                            "invariant": tr,
+                            "method": m_name,
+                            "call_seq": [{"method": m, "args": _serialize_val(a)} for m, a in call_seq[:len(steps_executed)]],
+                            "steps": list(steps_executed),
+                            "before": pre_call_snap,
+                            "after": post_call_snap,
+                            "rationale": f"Transition invariant `{tr.expression}` evaluated to False",
+                        })
+                        raise AssertionError(f"Transition invariant violated: {tr.expression}")
+
+            # Standard invariants evaluation
             for inv in invariants:
-                ok = _eval_expr(inv.expression, {"self": instance})
+                ok = _eval_expr(inv.expression, {"self": instance, "old": old_snap})
                 if not ok:
                     last_failure.clear()
-                    last_failure.update(
-                        {
-                            "invariant": inv,
-                            "method": m_name,
-                            "call_seq": [
-                                {"method": m, "args": _serialize_val(a)}
-                                for m, a in call_seq[: len(steps_executed)]
-                            ],
-                            "steps": list(steps_executed),
-                            "before": initial_snap,
-                            "after": _snapshot_obj(instance),
-                        }
-                    )
+                    last_failure.update({
+                        "invariant": inv,
+                        "method": m_name,
+                        "call_seq": [{"method": m, "args": _serialize_val(a)} for m, a in call_seq[:len(steps_executed)]],
+                        "steps": list(steps_executed),
+                        "before": initial_snap,
+                        "after": post_call_snap,
+                    })
                     raise AssertionError(f"Invariant violated: {inv.expression}")
 
     try:
@@ -587,6 +838,10 @@ def _check_class_properties(
     except (AssertionError, BaseExceptionGroup):
         if last_failure:
             inv = last_failure["invariant"]
+            expected_desc = last_failure.get(
+                "rationale",
+                f"Invariant `{inv.expression}` must evaluate to True after every state transition",
+            )
             return (
                 InvariantViolation(
                     invariant=inv,
@@ -594,7 +849,7 @@ def _check_class_properties(
                     failing_target=f"{cls.__qualname__}.{last_failure['method']}",
                     counterexample={"call_sequence": last_failure["call_seq"]},
                     trace_steps=last_failure["steps"],
-                    expected_state_desc=f"Invariant `{inv.expression}` must evaluate to True after every state transition",
+                    expected_state_desc=expected_desc,
                     actual_state={"before": last_failure["before"], "after": last_failure["after"]},
                     seed=seed_val,
                     cases_evaluated=cases_run,
@@ -610,13 +865,17 @@ def _check_class_properties(
 def _check_function_properties(
     fn: Callable[..., Any],
     invariants: list[InvariantSpec],
+    transitions: list[TransitionSpec] | None = None,
     *,
     seed_val: int,
     max_examples: int,
 ) -> tuple[InvariantViolation | None, int, dict[str, str]]:
+    transitions = transitions or []
     merged_bounds: dict[str, Any] = {}
     for inv in invariants:
         merged_bounds.update(inv.domain_bounds)
+    for tr in transitions:
+        merged_bounds.update(tr.domain_bounds)
     merged_bounds.update(getattr(fn, "__ayentra_domain__", {}))
 
     sig = inspect.signature(fn)
@@ -650,7 +909,7 @@ def _check_function_properties(
         except ValueError:
             return
         except Exception as exc:
-            inv = invariants[0]
+            inv = (invariants or transitions)[0]
             last_failure.clear()
             last_failure.update(
                 {
@@ -675,6 +934,26 @@ def _check_function_properties(
                     }
                 )
                 raise AssertionError(f"Invariant violated: {inv.expression}")
+
+        for tr in transitions:
+            eval_ctx = {
+                "result": res,
+                "principal": call_kwargs.get("principal"),
+                "applied_fields": list(call_kwargs.keys()),
+                **call_kwargs,
+            }
+            ok = _eval_expr(tr.expression, eval_ctx)
+            if not ok:
+                last_failure.clear()
+                last_failure.update(
+                    {
+                        "invariant": tr,
+                        "kwargs": dict(call_kwargs),
+                        "steps": [f"{fn.__qualname__}({arg_str}) -> {res!r}"],
+                        "result": res,
+                    }
+                )
+                raise AssertionError(f"Transition invariant violated: {tr.expression}")
 
     try:
         prop_runner()
@@ -728,6 +1007,7 @@ def _rehydrate_args(kwargs: dict[str, Any], fn: Callable[..., Any]) -> dict[str,
         "Optional": Optional,
         "Union": Union,
         "None": None,
+        "SecurityPrincipal": SecurityPrincipal,
         **fn_ns,
     }
     rehydrated: dict[str, Any] = {}
@@ -744,6 +1024,12 @@ def _rehydrate_args(kwargs: dict[str, Any], fn: Callable[..., Any]) -> dict[str,
                 except Exception:
                     pass
         origin = get_origin(ann)
+        if (ann is SecurityPrincipal or ann == "SecurityPrincipal") and isinstance(v, dict):
+            rehydrated[k] = SecurityPrincipal(**v)
+            continue
+        if isinstance(v, SecurityPrincipal):
+            rehydrated[k] = v
+            continue
         if isinstance(v, list):
             if ann in (tuple, "tuple") or origin is tuple:
                 rehydrated[k] = tuple(v)
@@ -838,15 +1124,60 @@ def replay_counterexample(filepath: str | Path, violation: InvariantViolation) -
         for step in violation.counterexample.get("call_sequence", []):
             m_fn = getattr(instance, step["method"])
             call_args = _rehydrate_args(step["args"], m_fn)
+            pre_call_snap = _snapshot_obj(instance)
+            old_snap = StateSnapshot(pre_call_snap)
+            principal = call_args.get("principal")
+            payload = call_args.get("payload", call_args.get("data", call_args.get("updates", call_args)))
+            call_failed = False
+            exc_raised = None
+            res = None
             try:
                 if inspect.iscoroutinefunction(m_fn):
-                    asyncio.run(m_fn(**call_args))
+                    res = asyncio.run(m_fn(**call_args))
                 else:
-                    m_fn(**call_args)
-            except ValueError:
-                pass
-            if not _eval_expr(inv.expression, {"self": instance}):
-                return False
+                    res = m_fn(**call_args)
+            except (ValueError, PermissionError) as exc:
+                call_failed = True
+                exc_raised = exc
+            except Exception as exc:
+                call_failed = True
+                exc_raised = exc
+
+            post_call_snap = _snapshot_obj(instance)
+            applied_fields = [k for k in post_call_snap if post_call_snap.get(k) != pre_call_snap.get(k)]
+
+            if isinstance(inv, TransitionSpec):
+                role = getattr(principal, "role", "default") if principal else "default"
+                allowed = set(inv.allowed_fields.get(role, [])) if inv.allowed_fields else None
+                if inv.policy == TransactionPolicy.STRICT_ATOMIC:
+                    if allowed is not None and isinstance(payload, dict):
+                        unauthorized = set(payload.keys()) - allowed
+                        if unauthorized and not call_failed:
+                            return False
+                    if call_failed:
+                        is_eq, _ = _business_state_equal(pre_call_snap, post_call_snap)
+                        if not is_eq:
+                            return False
+                elif inv.policy == TransactionPolicy.SELECTIVE_DROP:
+                    if allowed is not None and isinstance(payload, dict):
+                        unauthorized = set(payload.keys()) - allowed
+                        if any(post_call_snap.get(f) != pre_call_snap.get(f) for f in unauthorized):
+                            return False
+
+                if not call_failed:
+                    ctx = {
+                        "self": instance,
+                        "old": old_snap,
+                        "principal": principal,
+                        "applied_fields": applied_fields,
+                        "payload": payload,
+                        "result": res,
+                    }
+                    if not _eval_expr(inv.expression, ctx):
+                        return False
+            else:
+                if not _eval_expr(inv.expression, {"self": instance, "old": old_snap}):
+                    return False
         return True
 
     fn = getattr(module, inv.target_name, None)

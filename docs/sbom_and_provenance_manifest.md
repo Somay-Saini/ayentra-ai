@@ -341,7 +341,7 @@ The finalized release governance records and distribution artifacts match the fo
 | :--- | :--- | :--- | :--- |
 | docs/release_go_no_go_dossier.md | Wave 9 to 17 Production Go/No-Go Decision Record | 28,579 | d28ead3713fb0ce4b11cd7d70f70a1f6b325f5b3635bfabfb40847d88ff601e7 |
 | docs/code_review_signoff.md | Wave 9 to 17 Full Code Review Sign-Off | 19,205 | 6f94dbd270f78637f63ab9ca2bbef56c6a0ffab5684dfd0f1c3dd3c19e98c368 |
-| docs/taste_and_ui_audit_report.md | Wave 8 to 17 Taste & Aesthetic Quality Audit | 11,834 | ac6e3f9c415ade270a9f9d8ec11d1e287562afe9b27d320ade9da4ff9e92dd41 |
+| docs/taste_and_ui_audit_report.md | Wave 8 to 17 Taste & Aesthetic Quality Audit | 11,829 | 1afda8474b8f4824b5cce08d3508d26b831ff8bcf1ad6bbf5d4210cb2ab4acac |
 | dist/ayentra-0.1.0-py3-none-any.whl | Binary Distribution Wheel (PEP 427) | 108,791 | c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 |
 | dist/ayentra-0.1.0.tar.gz | Source Distribution Archive (sdist) | 143,855 | 2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c |
 

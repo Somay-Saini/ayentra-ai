@@ -92,7 +92,42 @@ def to_sarif(
                 },
             }
 
-
+            patched_src = getattr(patch, "patched_source", "") if patch else ""
+            unified_diff = getattr(patch, "unified_diff", "") if patch else ""
+            if patched_src.strip() and unified_diff.strip():
+                orig_lines = []
+                if target_file.is_file():
+                    orig_lines = target_file.read_text(encoding="utf-8", errors="replace").splitlines()
+                end_line = max(1, len(orig_lines))
+                end_col = max(1, len(orig_lines[-1]) + 1) if orig_lines else 1
+                res_obj["fixes"] = [
+                    {
+                        "description": {
+                            "text": f"Apply verified fix for {violation.failing_target}",
+                        },
+                        "artifactChanges": [
+                            {
+                                "artifactLocation": {
+                                    "uri": rel_uri,
+                                    "uriBaseId": "%SRCROOT%",
+                                },
+                                "replacements": [
+                                    {
+                                        "deletedRegion": {
+                                            "startLine": 1,
+                                            "startColumn": 1,
+                                            "endLine": end_line,
+                                            "endColumn": end_col,
+                                        },
+                                        "insertedContent": {
+                                            "text": patched_src,
+                                        },
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ]
 
             sarif_results.append(res_obj)
 

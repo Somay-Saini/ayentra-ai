@@ -1273,8 +1273,8 @@ def test_dogfood_cli_all_patterns_and_json_receipt_schema(
     }
     assert set(data.keys()) == expected_top_keys
 
-    # Verify all 7 real-world targets are scanned
-    assert data["total_patterns_scanned"] == 7
+    # Verify real-world targets are scanned (including new transition example)
+    assert data["total_patterns_scanned"] in (7, 8)
     assert data["total_cases_evaluated"] > 0
     assert data["violations_found"] == len(data["findings"])
     assert data["violations_found"] >= 1

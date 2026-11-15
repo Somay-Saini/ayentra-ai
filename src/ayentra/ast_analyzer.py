@@ -52,7 +52,7 @@ def _extract_invariant_decorators(
                 func_name = dec.func.id
             elif isinstance(dec.func, ast.Attribute):
                 func_name = dec.func.attr
-            if func_name == "invariant" and dec.args:
+            if func_name in ("invariant", "transition_invariant") and dec.args:
                 first_arg = dec.args[0]
                 if isinstance(first_arg, ast.Constant) and isinstance(first_arg.value, str):
                     expr = first_arg.value.strip()
@@ -181,6 +181,7 @@ def _analyze_function(
     get_vars: set[str] = set()
     none_checked_params: set[str] = set()
     attr_accesses: list[tuple[str, str, int]] = []
+    mass_assignment_nodes: list[tuple[str, int]] = []
 
     for child in ast.walk(node):
         if isinstance(child, ast.ExceptHandler):
@@ -211,6 +212,12 @@ def _analyze_function(
                     target_arg = child.args[0] if child.args else (child.keywords[0].value if child.keywords else None)
                     if isinstance(target_arg, ast.Name) and target_arg.id in param_names:
                         uuid_cast_params.append((target_arg.id, child.lineno))
+                elif child.func.id == "setattr" and child.args:
+                    if isinstance(child.args[0], ast.Name) and child.args[0].id == "self":
+                        if len(child.args) >= 2 and not (
+                            isinstance(child.args[1], ast.Constant) and isinstance(child.args[1].value, str)
+                        ):
+                            mass_assignment_nodes.append(("setattr", child.lineno))
             elif isinstance(child.func, ast.Attribute):
                 if child.func.attr in {"isfinite", "isnan", "isinf"}:
                     checks_isfinite = True
@@ -221,6 +228,15 @@ def _analyze_function(
                     decimal_line = child.lineno
                 elif child.func.attr == "get" and isinstance(child.func.value, ast.Name):
                     get_vars.add(child.func.value.id)
+                elif child.func.attr == "update":
+                    val = child.func.value
+                    if (
+                        isinstance(val, ast.Attribute)
+                        and val.attr == "__dict__"
+                        and isinstance(val.value, ast.Name)
+                        and val.value.id == "self"
+                    ):
+                        mass_assignment_nodes.append(("__dict__.update", child.lineno))
                 elif (
                     child.func.attr == "UUID"
                     and isinstance(child.func.value, ast.Name)
@@ -275,6 +291,33 @@ def _analyze_function(
             and child.value.id in param_names
         ):
             attr_accesses.append((child.value.id, child.attr, child.lineno))
+
+    # Detect split-commit leaks: mutations on self preceding raise statements without rollback
+    split_commit_nodes: list[tuple[str, int, int]] = []
+    has_payload_param = any(p in {"payload", "updates", "data", "body"} or "dict" in p.lower() for p in param_names)
+    has_transition_dec = any("transition_invariant" in e or "TransactionPolicy" in e for e in explicit)
+    if (has_payload_param or has_transition_dec) and parent_class:
+        mutations_before_raise: list[tuple[str, int]] = []
+        for stmt in node.body:
+            if isinstance(stmt, (ast.Assign, ast.AugAssign)):
+                targets = [stmt.target] if isinstance(stmt, ast.AugAssign) else stmt.targets
+                for t in targets:
+                    if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) and t.value.id == "self":
+                        mutations_before_raise.append((t.attr, stmt.lineno))
+            elif isinstance(stmt, ast.If):
+                raises_in_if = [n for n in ast.walk(stmt) if isinstance(n, ast.Raise)]
+                if raises_in_if and mutations_before_raise:
+                    for attr_m, m_line in mutations_before_raise:
+                        if m_line < stmt.lineno:
+                            split_commit_nodes.append((attr_m, m_line, raises_in_if[0].lineno))
+                    mutations_before_raise.clear()
+            elif isinstance(stmt, ast.Raise) and mutations_before_raise:
+                for attr_m, m_line in mutations_before_raise:
+                    if m_line < stmt.lineno:
+                        split_commit_nodes.append((attr_m, m_line, stmt.lineno))
+                mutations_before_raise.clear()
+            elif isinstance(stmt, ast.Try):
+                mutations_before_raise.clear()
 
     if uses_float_cast and not checks_isfinite:
         expr = "all(math.isfinite(v) for v in result.values())"
@@ -393,3 +436,25 @@ def _analyze_function(
                         lineno=attr_line,
                     )
                 )
+
+    for kind_lbl, m_line in mass_assignment_nodes:
+        result.suggestions.append(
+            CandidateSuggestion(
+                target_name=qualname,
+                kind="function",
+                suggested_expression="payload = {k: v for k, v in payload.items() if k in allowed_keys}",
+                rationale=f"Unfiltered mass assignment via {kind_lbl} at line {m_line} on compound payload. Enforce explicit field allowlist.",
+                lineno=m_line,
+            )
+        )
+
+    for attr_name, m_line, r_line in split_commit_nodes:
+        result.suggestions.append(
+            CandidateSuggestion(
+                target_name=qualname,
+                kind="function",
+                suggested_expression=f"@transition_invariant(..., policy=TransactionPolicy.STRICT_ATOMIC) on {qualname}",
+                rationale=f"State mutation on 'self.{attr_name}' at line {m_line} precedes validation exception at line {r_line} without atomic rollback (split-commit leak).",
+                lineno=m_line,
+            )
+        )

@@ -556,7 +556,7 @@ def test_action_yml_post_pr_comment_and_fallback_behavior() -> None:
     assert "default: 'false'" in action_yml
 
     # 2. Safe fallback when pr-comment-out is omitted but post-pr-comment is true
-    assert '[ -z "$PR_OUT" ] && [ "${{ inputs.post-pr-comment }}" = "true" ]' in action_yml
+    assert '[ -z "$PR_OUT" ] && [ "$POST_PR_COMMENT" = "true" ]' in action_yml
     assert 'PR_OUT="ayentra-pr-comment.md"' in action_yml
 
     # 3. Post comment execution step uses fallback file

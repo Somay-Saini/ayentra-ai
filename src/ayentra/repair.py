@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+from ayentra.contracts import SecurityPrincipal, TransactionPolicy, TransitionSpec
 from ayentra.engine import InvariantViolation, replay_counterexample, run_verification_engine
 from ayentra.regression import RegressionRunResult, run_pytest_suite
 
@@ -408,11 +409,257 @@ def _apply_none_guard_transform(
     return ast.unparse(tree) + "\n"
 
 
+def _find_transition_parameters(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> tuple[str, str]:
+    param_names = [a.arg for a in node.args.args if a.arg != "self"]
+
+    payload_candidates = ["payload", "updates", "changes", "data", "fields", "patch", "attributes", "body"]
+    payload_param = next((p for p in payload_candidates if p in param_names), None)
+    if payload_param is None:
+        for a in node.args.args:
+            if a.arg == "self":
+                continue
+            ann = ast.unparse(a.annotation).lower() if a.annotation else ""
+            if "dict" in ann or "mapping" in ann:
+                payload_param = a.arg
+                break
+    if payload_param is None and param_names:
+        non_princ = [p for p in param_names if p not in ("principal", "actor", "user", "role", "caller", "identity")]
+        payload_param = non_princ[0] if non_princ else param_names[0]
+    elif payload_param is None:
+        payload_param = "payload"
+
+    principal_candidates = ["principal", "actor", "user", "role", "caller", "identity", "context", "auth"]
+    principal_param = next((p for p in principal_candidates if p in param_names), None)
+    if principal_param is None:
+        principal_param = "principal"
+
+    return payload_param, principal_param
+
+
+def _is_field_allowlist_violation(violation: InvariantViolation, tree: ast.Module) -> bool:
+    """Determine if an invariant violation stems from a field-level transition or allowlist policy."""
+    inv = getattr(violation, "invariant", None)
+    if inv is not None:
+        if isinstance(inv, TransitionSpec) or getattr(inv, "__class__", None).__name__ == "TransitionSpec":
+            return True
+        if hasattr(inv, "allowed_fields") and getattr(inv, "allowed_fields"):
+            return True
+        if hasattr(inv, "policy") and getattr(inv, "policy") in (
+            TransactionPolicy.STRICT_ATOMIC,
+            TransactionPolicy.SELECTIVE_DROP,
+            "strict_atomic",
+            "selective_drop",
+        ):
+            return True
+
+    actual_res = str(getattr(violation, "actual_state", {}).get("result", ""))
+    rationale = str(getattr(violation, "expected_state_desc", ""))
+    trace_text = " ".join(getattr(violation, "trace_steps", []))
+    combined = (actual_res + " " + rationale + " " + trace_text).lower()
+
+    if any(
+        term in combined
+        for term in (
+            "strict_atomic",
+            "selective_drop",
+            "unauthorized fields",
+            "unauthorized field",
+            "partial write invariant breach",
+            "allowed_fields",
+            "allowlist",
+            "field allowlist",
+        )
+    ):
+        return True
+
+    target_name = getattr(inv, "target_name", "")
+    failing_target = getattr(violation, "failing_target", "")
+    target_fns = _find_target_functions(tree, target_name, failing_target)
+    for fn in target_fns:
+        param_names = [a.arg.lower() for a in fn.args.args if a.arg != "self"]
+        has_payload = any(p in param_names for p in ("payload", "updates", "data", "changes", "fields", "patch"))
+        has_principal = any(p in param_names for p in ("principal", "actor", "user", "role", "caller", "identity"))
+        if has_payload and has_principal:
+            return True
+        for decorator in getattr(fn, "decorator_list", []):
+            dec_src = ast.unparse(decorator)
+            if "transition_invariant" in dec_src or "allowed_fields" in dec_src:
+                return True
+
+    return False
+
+
+def _synthesize_field_transition_guard_node(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+    violation: InvariantViolation | None = None,
+    *,
+    policy: TransactionPolicy | str = TransactionPolicy.STRICT_ATOMIC,
+    allowed_fields: dict[str, list[str]] | None = None,
+    payload_param: str | None = None,
+    principal_param: str | None = None,
+) -> list[ast.stmt]:
+    """Synthesize AST guard statements for field allowlist enforcement and audit dispatch."""
+    inv = getattr(violation, "invariant", None) if violation is not None else None
+
+    if inv is not None and hasattr(inv, "policy"):
+        policy = getattr(inv, "policy")
+    policy_str = policy.value if isinstance(policy, TransactionPolicy) else str(policy).lower()
+    if policy_str not in ("selective_drop", "strict_atomic"):
+        policy_str = "strict_atomic"
+
+    if allowed_fields is None and inv is not None:
+        allowed_fields = getattr(inv, "allowed_fields", None)
+    if allowed_fields is None:
+        allowed_fields = {}
+
+    det_payload, det_principal = _find_transition_parameters(node)
+    p_param = payload_param or det_payload
+    u_param = principal_param or det_principal
+
+    param_names = [a.arg for a in node.args.args if a.arg != "self"]
+    has_self = any(a.arg == "self" for a in node.args.args)
+    has_princ_arg = u_param in param_names
+    allowed_repr = repr(allowed_fields)
+    target_desc = "self.__class__.__name__" if has_self else f"'{node.name}'"
+
+    if has_princ_arg:
+        princ_extraction = (
+            f"_p_role = getattr({u_param}, 'role', str({u_param}))\n"
+            f"_p_id = getattr({u_param}, 'principal_id', str({u_param}))"
+        )
+    else:
+        princ_extraction = (
+            "_p = getattr(self, 'principal', getattr(self, 'current_user', 'anonymous')) if 'self' in locals() else 'anonymous'\n"
+            "_p_role = getattr(_p, 'role', str(_p))\n"
+            "_p_id = getattr(_p, 'principal_id', str(_p))"
+        )
+
+    if policy_str == "selective_drop":
+        guard_code = (
+            f"{princ_extraction}\n"
+            f"_allowed_map = {allowed_repr}\n"
+            "if not _allowed_map and 'self' in locals() and hasattr(self, 'allowed_fields') and isinstance(self.allowed_fields, dict):\n"
+            "    _allowed_map = self.allowed_fields\n"
+            "_allowed_for_role = set(_allowed_map.get(_p_role, _allowed_map.get(_p_id, [])))\n"
+            f"if isinstance({p_param}, dict):\n"
+            f"    _unauthorized = [k for k in {p_param}.keys() if k not in _allowed_for_role]\n"
+            f"    _allowed_payload = {{k: v for k, v in {p_param}.items() if k in _allowed_for_role}}\n"
+            "    if _unauthorized:\n"
+            "        _audit_entry = {\n"
+            "            'event': 'UNAUTHORIZED_FIELD_STRIPPED',\n"
+            "            'principal': _p_id,\n"
+            "            'role': _p_role,\n"
+            f"            'target': {target_desc},\n"
+            "            'applied_fields': sorted(_allowed_payload.keys()),\n"
+            "            'rejected_fields': sorted(_unauthorized),\n"
+            "            'policy': 'selective_drop',\n"
+            "        }\n"
+            "        if 'self' in locals():\n"
+            "            if not hasattr(self, 'audit_log') or not isinstance(self.audit_log, list):\n"
+            "                self.audit_log = []\n"
+            "            self.audit_log.append(_audit_entry)\n"
+            "            if hasattr(self, 'audit_dispatch') and callable(self.audit_dispatch):\n"
+            "                self.audit_dispatch(_audit_entry)\n"
+            "        elif 'audit_log' in locals() and isinstance(audit_log, list):\n"
+            "            audit_log.append(_audit_entry)\n"
+            "        elif 'audit_sink' in locals() and callable(audit_sink):\n"
+            "            audit_sink(_audit_entry)\n"
+            f"    {p_param} = _allowed_payload\n"
+        )
+    else:
+        guard_code = (
+            f"{princ_extraction}\n"
+            f"_allowed_map = {allowed_repr}\n"
+            "if not _allowed_map and 'self' in locals() and hasattr(self, 'allowed_fields') and isinstance(self.allowed_fields, dict):\n"
+            "    _allowed_map = self.allowed_fields\n"
+            "_allowed_for_role = set(_allowed_map.get(_p_role, _allowed_map.get(_p_id, [])))\n"
+            f"if isinstance({p_param}, dict):\n"
+            f"    _unauthorized = [k for k in {p_param}.keys() if k not in _allowed_for_role]\n"
+            "    if _unauthorized:\n"
+            "        _audit_entry = {\n"
+            "            'event': 'UNAUTHORIZED_FIELD_ATTEMPT',\n"
+            "            'principal': _p_id,\n"
+            "            'role': _p_role,\n"
+            f"            'target': {target_desc},\n"
+            "            'rejected_fields': sorted(_unauthorized),\n"
+            "            'policy': 'strict_atomic',\n"
+            "        }\n"
+            "        if 'self' in locals():\n"
+            "            if not hasattr(self, 'audit_log') or not isinstance(self.audit_log, list):\n"
+            "                self.audit_log = []\n"
+            "            self.audit_log.append(_audit_entry)\n"
+            "            if hasattr(self, 'audit_dispatch') and callable(self.audit_dispatch):\n"
+            "                self.audit_dispatch(_audit_entry)\n"
+            "        elif 'audit_log' in locals() and isinstance(audit_log, list):\n"
+            "            audit_log.append(_audit_entry)\n"
+            "        elif 'audit_sink' in locals() and callable(audit_sink):\n"
+            "            audit_sink(_audit_entry)\n"
+            "        raise PermissionError(f'Principal {_p_id} unauthorized to mutate fields: {sorted(_unauthorized)}')\n"
+        )
+
+    return ast.parse(guard_code.strip()).body
+
+
+def _apply_field_allowlist_and_audit_transform(
+    source: str,
+    tree: ast.Module,
+    target_name: str,
+    violation: InvariantViolation,
+) -> str:
+    """Synthesize deterministic field-level allowlist guards and security audit dispatch."""
+    failing_target = getattr(violation, "failing_target", "")
+    target_fns = _find_target_functions(tree, target_name, failing_target)
+
+    if not target_fns:
+        for node in tree.body:
+            if isinstance(node, ast.ClassDef) and (node.name == target_name or target_name.startswith(node.name)):
+                for item in node.body:
+                    if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and not item.name.startswith("_"):
+                        target_fns.append(item)
+
+    inv = getattr(violation, "invariant", None)
+    policy = getattr(inv, "policy", TransactionPolicy.STRICT_ATOMIC)
+    allowed_fields = getattr(inv, "allowed_fields", None)
+
+    for fn_node in target_fns:
+        seen_guards = {ast.unparse(stmt).strip() for stmt in fn_node.body}
+        guard_stmts = _synthesize_field_transition_guard_node(
+            fn_node,
+            violation,
+            policy=policy,
+            allowed_fields=allowed_fields,
+        )
+        new_guards: list[ast.stmt] = []
+        for g in guard_stmts:
+            g_str = ast.unparse(g).strip()
+            if g_str not in seen_guards:
+                seen_guards.add(g_str)
+                new_guards.append(g)
+
+        fn_node.body = new_guards + fn_node.body
+
+    ast.fix_missing_locations(tree)
+    return ast.unparse(tree) + "\n"
+
+
+is_field_allowlist_violation = _is_field_allowlist_violation
+synthesize_field_transition_guard_node = _synthesize_field_transition_guard_node
+apply_field_allowlist_and_audit_transform = _apply_field_allowlist_and_audit_transform
+
+
 def _synthesize_deterministic_patch(
     source: str,
     violation: InvariantViolation,
 ) -> tuple[str, str]:
     tree = ast.parse(source)
+
+    if _is_field_allowlist_violation(violation, tree):
+        patched = _apply_field_allowlist_and_audit_transform(
+            source, tree, violation.invariant.target_name, violation=violation
+        )
+        return patched, "AST Field Allowlist & Audit Dispatch Guard Synthesis"
 
     if violation.verification_method == "Deterministic Thread Interleaving Check" or violation.invariant.check_concurrency:
         patched = _apply_concurrency_lock_transform(source, tree, violation.invariant.target_name)

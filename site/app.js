@@ -1188,3 +1188,185 @@ window.addEventListener("keydown", (e) => {
     closeSiteModal();
   }
 });
+
+/* ==========================================================================
+   Customer License & Credit Portal Logic (Self-Serve Management)
+   ========================================================================== */
+
+async function checkLicenseBalance() {
+  const input = document.getElementById("portal-license-input");
+  const btn = document.getElementById("portal-check-btn");
+  const alertBox = document.getElementById("portal-status-alert");
+  const dashboard = document.getElementById("portal-dashboard-results");
+
+  if (!input) return;
+  const key = input.value.trim();
+
+  if (!key) {
+    if (alertBox) {
+      alertBox.style.display = "block";
+      alertBox.style.background = "var(--accent-danger-soft)";
+      alertBox.style.border = "1px solid var(--accent-danger)";
+      alertBox.style.color = "var(--accent-danger)";
+      alertBox.textContent = "Please enter an Ayentra license key.";
+    }
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Checking...";
+  }
+
+  try {
+    const res = await fetch(`/api/portal?key=${encodeURIComponent(key)}`);
+    const data = await res.json();
+
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Check Balance";
+    }
+
+    if (data.valid) {
+      if (alertBox) {
+        alertBox.style.display = "none";
+      }
+      if (dashboard) {
+        dashboard.style.display = "block";
+      }
+
+      // Populate Metrics
+      const planNameEl = document.getElementById("portal-plan-name");
+      if (planNameEl) planNameEl.textContent = data.plan_tier || "Ayentra Team";
+
+      const planPriceEl = document.getElementById("portal-plan-price");
+      if (planPriceEl) planPriceEl.textContent = data.monthly_price || "$249 / month";
+
+      const creditsMetricEl = document.getElementById("portal-credits-metric");
+      if (creditsMetricEl) creditsMetricEl.textContent = `${data.remaining_credits.toLocaleString()} / ${data.total_credits.toLocaleString()} Runs`;
+
+      const creditsUsedEl = document.getElementById("portal-credits-used");
+      if (creditsUsedEl) creditsUsedEl.textContent = `${data.used_credits.toLocaleString()} CI runs consumed this cycle`;
+
+      const renewalEl = document.getElementById("portal-renewal-date");
+      if (renewalEl && data.renews_at) {
+        try {
+          const d = new Date(data.renews_at);
+          renewalEl.textContent = `Renews on ${d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+        } catch (e) {
+          renewalEl.textContent = "Monthly active cycle";
+        }
+      }
+
+      // Update Progress Bar
+      const percentText = document.getElementById("portal-percent-text");
+      if (percentText) percentText.textContent = `${data.percent_remaining}% Available`;
+
+      const progressBar = document.getElementById("portal-progress-bar");
+      if (progressBar) progressBar.style.width = `${Math.max(5, data.percent_remaining)}%`;
+
+      const totalRunsLabel = document.getElementById("portal-total-runs-label");
+      if (totalRunsLabel) totalRunsLabel.textContent = `${data.total_credits.toLocaleString()} Total Monthly Runs`;
+
+      const statusBadge = document.getElementById("portal-status-badge");
+      if (statusBadge) {
+        statusBadge.textContent = data.status === 'active' ? 'Active Subscription' : data.status;
+      }
+
+    } else {
+      if (alertBox) {
+        alertBox.style.display = "block";
+        alertBox.style.background = "var(--accent-danger-soft)";
+        alertBox.style.border = "1px solid var(--accent-danger)";
+        alertBox.style.color = "var(--accent-danger)";
+        alertBox.textContent = data.error || "License key not found or expired.";
+      }
+    }
+  } catch (err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Check Balance";
+    }
+
+    // Client-side fallback if running standalone without serverless api local runner
+    if (key === 'AYENTRA-TEAM-DEMO' || key === 'AYENTRA-SCALE-DEMO') {
+      const isScale = key.includes('SCALE');
+      const total = isScale ? 5000 : 1000;
+      const remaining = isScale ? 4720 : 842;
+      const used = total - remaining;
+      const pct = Math.round((remaining / total) * 100);
+
+      const planNameEl = document.getElementById("portal-plan-name");
+      if (planNameEl) planNameEl.textContent = isScale ? "Ayentra Scale" : "Ayentra Team";
+
+      const planPriceEl = document.getElementById("portal-plan-price");
+      if (planPriceEl) planPriceEl.textContent = isScale ? "$999 / month" : "$249 / month";
+
+      const creditsMetricEl = document.getElementById("portal-credits-metric");
+      if (creditsMetricEl) creditsMetricEl.textContent = `${remaining.toLocaleString()} / ${total.toLocaleString()} Runs`;
+
+      const creditsUsedEl = document.getElementById("portal-credits-used");
+      if (creditsUsedEl) creditsUsedEl.textContent = `${used.toLocaleString()} CI runs consumed this cycle`;
+
+      const percentText = document.getElementById("portal-percent-text");
+      if (percentText) percentText.textContent = `${pct}% Available`;
+
+      const progressBar = document.getElementById("portal-progress-bar");
+      if (progressBar) progressBar.style.width = `${pct}%`;
+
+      if (alertBox) alertBox.style.display = "none";
+    } else {
+      if (alertBox) {
+        alertBox.style.display = "block";
+        alertBox.style.background = "var(--accent-danger-soft)";
+        alertBox.style.border = "1px solid var(--accent-danger)";
+        alertBox.style.color = "var(--accent-danger)";
+        alertBox.textContent = "Unable to connect to verification API. Check network connection.";
+      }
+    }
+  }
+}
+
+function fillAndCheckLicense(key) {
+  const input = document.getElementById("portal-license-input");
+  if (input) {
+    input.value = key;
+    checkLicenseBalance();
+  }
+}
+
+function copyPortalCiSnippet() {
+  const code = `# Ayentra Automated CI Invariant Verification
+- name: Run Ayentra Verification
+  env:
+    AYENTRA_API_KEY: \${{ secrets.AYENTRA_API_KEY }}
+  run: |
+    pip install ayentra
+    ayentra verify --ci --receipt=receipt.json`;
+
+  navigator.clipboard.writeText(code).then(() => {
+    const copyText = document.getElementById("portal-copy-text");
+    if (copyText) {
+      const old = copyText.textContent;
+      copyText.textContent = "Copied!";
+      setTimeout(() => {
+        copyText.textContent = old;
+      }, 2000);
+    }
+  }).catch(() => {
+    // Fallback if clipboard API is blocked
+    const textarea = document.createElement("textarea");
+    textarea.value = code;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+    const copyText = document.getElementById("portal-copy-text");
+    if (copyText) {
+      copyText.textContent = "Copied!";
+      setTimeout(() => {
+        copyText.textContent = "Copy CI Snippet";
+      }, 2000);
+    }
+  });
+}

@@ -8,12 +8,12 @@ import time
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from ayentra.contracts import InvariantSpec
+from ayentra.contracts import InvariantSpec, TransitionSpec
 
 
 @dataclass
 class InterleavingViolation:
-    invariant: InvariantSpec
+    invariant: InvariantSpec | TransitionSpec
     method_name: str
     thread_calls: list[dict[str, Any]]
     trace_steps: list[str]
@@ -41,20 +41,22 @@ def _snapshot_state(instance: Any) -> dict[str, Any]:
 
 
 def _eval_invariant(expr: str, instance: Any) -> bool:
-    from ayentra.engine import _eval_expr
-    return _eval_expr(expr, {"self": instance})
+    from ayentra.engine import StateSnapshot, _eval_expr
+    snap = _snapshot_state(instance)
+    return _eval_expr(expr, {"self": instance, "old": StateSnapshot(snap), "applied_fields": list(snap.keys())})
 
 
 def explore_interleavings(
     cls: type,
-    invariants: list[InvariantSpec],
+    invariants: list[InvariantSpec | TransitionSpec],
     *,
     seed_val: int = 42,
     max_schedules: int = 40,
 ) -> tuple[InterleavingViolation | None, int]:
     """
     Explore concurrent thread schedules using barrier-synchronized worker threads
-    and sys.settrace line-level preemption to expose unprotected TOCTOU race conditions.
+    and sys.settrace line-level preemption to expose unprotected TOCTOU race conditions
+    and intermediate dirty reads during compound mutations.
     """
     # ponytail: 2-thread barrier + line-trace yield catches standard read-modify-write races; expand to N-thread DPOR if multi-lock deadlocks needed
     rng = random.Random(seed_val)
@@ -101,6 +103,7 @@ def _default_arg_for_param(param: inspect.Parameter, is_primary: bool, primary_v
     if param.default is not inspect.Parameter.empty and not is_primary:
         return param.default
     ann = param.annotation
+    p_name = param.name.lower()
     if ann in (str, "str") or (isinstance(ann, str) and "str" in ann.lower()):
         return "k"
     if ann in (bool, "bool") or (isinstance(ann, str) and "bool" in ann.lower()):
@@ -109,8 +112,12 @@ def _default_arg_for_param(param: inspect.Parameter, is_primary: bool, primary_v
         return float(primary_val) if is_primary else 1.0
     if ann in (list, "list") or (isinstance(ann, str) and "list" in ann.lower()):
         return [primary_val]
-    if ann in (dict, "dict") or (isinstance(ann, str) and "dict" in ann.lower()):
-        return {"k": primary_val}
+    if (
+        ann in (dict, "dict")
+        or (isinstance(ann, str) and "dict" in ann.lower())
+        or p_name in ("payload", "updates", "data", "body")
+    ):
+        return {"status": "VERIFIED", "reward_usd": primary_val * 10, "k": primary_val}
     return primary_val if is_primary else 1
 
 
@@ -141,6 +148,7 @@ def _build_candidate_pairs(
     pairs: list[CandidatePair] = []
     half_plus_one = (cap // 2) + 1
     callable_methods: list[tuple[str, Callable[..., Any]]] = []
+    reader_methods: list[tuple[str, Callable[..., Any]]] = []
 
     for name, fn in public_methods:
         sig = inspect.signature(fn)
@@ -150,6 +158,14 @@ def _build_candidate_pairs(
             pairs.append((name, fn, _build_args_for_fn(fn, half_plus_one), name, fn, _build_args_for_fn(fn, half_plus_one)))
             pairs.append((name, fn, _build_args_for_fn(fn, cap), name, fn, _build_args_for_fn(fn, 1)))
             pairs.append((name, fn, _build_args_for_fn(fn, max(1, cap - 1)), name, fn, _build_args_for_fn(fn, 2)))
+        else:
+            reader_methods.append((name, fn))
+
+    if reader_methods and callable_methods:
+        for m_mut, fn_mut in callable_methods:
+            for m_read, fn_read in reader_methods:
+                pairs.append((m_mut, fn_mut, _build_args_for_fn(fn_mut, half_plus_one), m_read, fn_read, ()))
+                pairs.append((m_mut, fn_mut, _build_args_for_fn(fn_mut, cap), m_read, fn_read, ()))
 
     if len(callable_methods) >= 2:
         for i, (m_a, fn_a) in enumerate(callable_methods):
@@ -206,13 +222,12 @@ def _run_single_interleaving(
     method_b: Any = None,
     fn_b: Any = None,
     args_b: Any = None,
-    invariants: list[InvariantSpec] | None = None,
+    invariants: list[InvariantSpec | TransitionSpec] | None = None,
     target_file: str = "",
     seed_val: int = 42,
     schedules_run: int = 1,
 ) -> InterleavingViolation | None:
     if invariants is None and isinstance(method_b, list):
-        # Backwards-compatible positional call: (cls, method_name, fn, arg1, arg2, invariants, target_file, seed_val, schedules_run)
         orig_arg1 = args_a
         orig_arg2 = method_b
         invariants = fn_b
@@ -248,7 +263,7 @@ def _run_single_interleaving(
         sys.settrace(make_tracer(thread_label, m_name))
         try:
             getattr(instance, m_name)(*call_args)
-        except ValueError:
+        except (ValueError, PermissionError):
             pass
         finally:
             sys.settrace(None)
@@ -293,7 +308,7 @@ def _shrink_interleaving(
     method_b: str,
     fn_b: Callable[..., Any],
     args_b: tuple[Any, ...],
-    invariants: list[InvariantSpec],
+    invariants: list[InvariantSpec | TransitionSpec],
     target_file: str,
     seed_val: int,
     schedules_run: int,
