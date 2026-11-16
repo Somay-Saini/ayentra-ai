@@ -277,8 +277,8 @@ All existing test suites pass (128 tests across unit, property, concurrency, rep
 
 ### 6.1 Clean Wheel and Source Distribution Provenance
 The release distributions staged in `dist/` have been audited for reproducible build integrity, file permissions, and cryptographic consistency:
-- `dist/ayentra-0.1.0-py3-none-any.whl`: 108,791 bytes, SHA-256 `c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73`.
-- `dist/ayentra-0.1.0.tar.gz`: 143,855 bytes, SHA-256 `2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c`.
+- `dist/ayentra-py3-none-any.whl`: 108,791 bytes, SHA-256 `c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73`.
+- `dist/ayentra.tar.gz`: 143,855 bytes, SHA-256 `2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c`.
 - Archive inspection confirms standard file permissions (0o666/0o644) with zero setuid, setgid, or world-writable files.
 
 ### 6.2 Locked Package Integrity and Zero Dependency CVEs

@@ -1,7 +1,7 @@
 # Ayentra Enterprise Air-Gapped & Self-Hosted Runner Deployment Hardening Guide
 
 **Document Classification:** Enterprise FinTech Infrastructure Security Standard  
-**Release Version:** Ayentra v1.0.0  
+**Release Track:** Ayentra Production  
 **Effective Date:** 2026-11-03  
 **Target Environments:** Self-Hosted Kubernetes (Actions Runner Controller / GitLab Runner Operator), Hardened Linux Virtual Machines, Air-Gapped High-Performance Compute Clusters  
 
@@ -166,14 +166,14 @@ For virtual machines or bare-metal runners executing via systemd service units:
 
 In air-gapped infrastructure, the Ayentra package and dependencies must be mirrored to internal package managers (JFrog Artifactory, Sonatype Nexus, AWS CodeArtifact, or local read-only NFS/PVC mounts).
 
-### 3.1 Verified v1.0.0 Artifact Checksums
+### 3.1 Verified Artifact Checksums
 
 Verify all mirrored distribution archives against canonical cryptographic hashes:
 
 | Release Archive | Byte Size | SHA-256 Cryptographic Digest |
 | :--- | :--- | :--- |
-| `ayentra-1.0.0-py3-none-any.whl` | 220,944 | `aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67` |
-| `ayentra-1.0.0.tar.gz` | 266,852 | `4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574` |
+| `ayentra-py3-none-any.whl` | 220,886 | `f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef` |
+| `ayentra.tar.gz` | 266,863 | `1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65` |
 
 ### 3.2 Air-Gapped Hash-Pinned Installation Script
 
@@ -187,7 +187,7 @@ WHEEL_DIR="/var/cache/ayentra-wheels"
 VERIFY_REQUIREMENTS="/tmp/requirements-airgap.txt"
 
 cat << 'EOF' > "$VERIFY_REQUIREMENTS"
-ayentra==1.0.0     --hash=sha256:aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67     --hash=sha256:4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574
+ayentra     --hash=sha256:f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef     --hash=sha256:1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65
 EOF
 
 python -m pip install     --no-index     --find-links="$WHEEL_DIR"     --require-hashes     -r "$VERIFY_REQUIREMENTS"

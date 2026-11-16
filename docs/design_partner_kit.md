@@ -144,7 +144,7 @@ The generated report complies with the official OASIS schema:
         "driver": {
           "name": "Ayentra",
           "version": "0.1.0",
-          "informationUri": "https://github.com/ayentra/ayentra",
+          "informationUri": "https://github.com/Somay-Saini/ayentra-ai",
           "rules": [
             {
               "id": "AYENTRA001",

@@ -1,5 +1,5 @@
 # Ayentra Candidate Calibration Packet and Reference Solutions Guide
-Version: 1.0.0
+Classification: Production Standard
 Author: Hiring Partner (Ayentra)
 Target: Technical Interviewers, Founders, and Hiring Calibration Committee
 Standard: Ayentra Human Taste and Craft Playbook

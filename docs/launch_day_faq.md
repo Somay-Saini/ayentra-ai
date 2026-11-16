@@ -2,7 +2,7 @@
 
 Target Audience: Staff Engineers, Principal Architects, Security Reviewers, and Hacker News / r/Python readers.  
 Scope: Architecture, concurrency verification, sandbox patching, air-gapped security, and concrete reproduction.  
-Release Version: Ayentra v0.1.0  
+Release Track: Ayentra Production  
 Live Studio URL: https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site  
 
 ---

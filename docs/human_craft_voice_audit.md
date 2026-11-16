@@ -1,6 +1,6 @@
 # Ayentra Human-Craft, Voice and Zero-Buzzword Audit
 
-**Audit Target:** Ayentra v0.1.0 Public Launch Sprint (Wave 26 Deliverable)
+**Audit Target:** Ayentra Public Launch Sprint (Wave 26 Deliverable)
 **Auditor:** Human-Craft and Taste Auditor (Ayentra)
 **Standard:** Senior Developer Minimalism and Human Taste Playbook (human_taste_playbook.md)
 **Status:** PASS (100% Compliance)
@@ -9,7 +9,7 @@
 
 ## 1. Scope and Objective
 
-This audit validates human craft, character hygiene, and developer-first voice standards across the complete Ayentra v0.1.0 release package. The scope covers:
+This audit validates human craft, character hygiene, and developer-first voice standards across the complete Ayentra release package. The scope covers:
 
 1. All 26 enterprise documentation files under docs/ and their byte-identical mirrors in C:/Users/Somay/OpenBot/Shared/.
 2. Public repository documentation: README.md, SECURITY.md, and test suites.

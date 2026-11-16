@@ -1,6 +1,6 @@
 # Ayentra Open-Source Maintainer PR Templates and Outreach Notes
 
-Release: Ayentra v0.1.0
+Target: Ayentra Production
 Domain: High-Growth Python Financial, Payment, and Concurrency Infrastructure
 Hygiene Bar: 0 em-dashes, 0 en-dashes, 0 AI buzzwords.
 

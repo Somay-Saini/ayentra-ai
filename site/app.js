@@ -891,13 +891,13 @@ window.switchDemoTarget = switchDemoTarget;
 
 // --- Quickstart, CLI, and SBOM Snippets & Tab Switching ---
 const QUICKSTART_SNIPPETS = {
-  sbom_req: `# Ayentra v1.0.0 Cryptographically Pinned Distribution
-ayentra==1.0.0 \\
+  sbom_req: `# Ayentra Cryptographically Pinned Distribution
+ayentra \\
     --hash=sha256:<release-wheel-sha256> \\
     --hash=sha256:<release-sdist-sha256>
 `,
   sbom_cmd: `pip install --require-hashes -r requirements-security.txt`,
-  sbom_wheel_cmd: `sha256sum -c ayentra-1.0.0.sha256 && pip install dist/ayentra-1.0.0-py3-none-any.whl --no-index --find-links=dist/`,
+  sbom_wheel_cmd: `sha256sum -c ayentra-release.sha256 && pip install dist/ayentra-*.whl --no-index --find-links=dist/`,
   sbom_cyclonedx_json: `{
   "$schema": "http://cyclonedx.org/schema/bom-1.5.json",
   "bomFormat": "CycloneDX",
@@ -907,10 +907,9 @@ ayentra==1.0.0 \\
   "metadata": {
     "timestamp": "2026-11-16T09:30:00Z",
     "component": {
-      "bom-ref": "pkg:pypi/ayentra@1.0.0",
+      "bom-ref": "pkg:pypi/ayentra",
       "type": "application",
       "name": "ayentra",
-      "version": "1.0.0",
       "licenses": [{"license": {"id": "MIT"}}]
     }
   },
@@ -921,8 +920,8 @@ ayentra==1.0.0 \\
     {"name": "sortedcontainers", "version": "2.4.0", "scope": "required", "licenses": [{"license": {"id": "Apache-2.0"}}]}
   ]
 }`,
-  supply_chain_req: `# Ayentra v1.0.0 Cryptographically Pinned Distribution
-ayentra==1.0.0 \\
+  supply_chain_req: `# Ayentra Cryptographically Pinned Distribution
+ayentra \\
     --hash=sha256:<release-wheel-sha256> \\
     --hash=sha256:<release-sdist-sha256>
 `,
@@ -948,7 +947,7 @@ jobs:
           python-version: '3.11'
 
       - name: Ayentra Invariant Gate
-        uses: Somay-Saini/ayentra-ai@v1
+        uses: Somay-Saini/ayentra-ai@main
         with:
           target: src/
           fix: true

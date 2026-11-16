@@ -1,14 +1,14 @@
-# Ayentra v0.1.0 Public Launch Package
+# Ayentra Public Launch Package
 
 Date: 2026-11-03  
-Release Target: Ayentra v0.1.0  
+Target: Ayentra Production  
 Live Demo Site: https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site  
 Repository Root: C:\Users\Somay\Desktop\idea1  
 Execution Status: Prepared and verified for public release  
 
 ---
 
-## 1. Official v0.1.0 Release Notes and Changelog
+## 1. Official Release Notes and Changelog
 
 ### Product Overview
 Ayentra is an invariant-aware verification gate for Python backends, payment ledgers, and state machines. It checks whether code violates explicitly declared domain invariants, finds minimal reproducible counterexamples using property-based shrinking and deterministic thread interleaving, and verifies candidate repairs inside an isolated sandbox before pull requests merge.
@@ -43,7 +43,7 @@ Ayentra is an invariant-aware verification gate for Python backends, payment led
 - Categorizes invariant violations by business risk level (Critical financial loss, High operational risk, or Medium logic discrepancy) with precise source file line and column numbers.
 
 #### 5. Composite PR Review Bot (`action.yml`)
-- Provides a reusable GitHub Action (`ayentra/action.yml`) for pull request workflows.
+- Provides a reusable GitHub Action (`action.yml`) for pull request workflows.
 - Generates markdown review comments formatted with structured risk summaries, exact counterexample payloads, collapsible unified diffs, and copyable CLI reproduction commands.
 - Writes structured markdown execution summaries directly into `GITHUB_STEP_SUMMARY`.
 - Operates entirely on the local runner environment with zero network calls and zero external telemetry.
@@ -141,7 +141,7 @@ Running `ayentra apply-patch app/ledger.py` synthesizes a candidate fix and test
 - Runs your repository's existing pytest suite.
 
 5. CI and GitHub Advanced Security:
-Passing `--sarif report.sarif` produces native OASIS SARIF 2.1.0 output for GitHub Code Scanning tabs. Our composite action (`ayentra/action.yml`) formats PR review comments with unified diffs and CLI reproduction commands.
+Passing `--sarif report.sarif` produces native OASIS SARIF 2.1.0 output for GitHub Code Scanning tabs. Our composite action (`action.yml`) formats PR review comments with unified diffs and CLI reproduction commands.
 
 6. Local Studio UI:
 Running `ayentra studio` opens an offline browser inspector in a clean light interface. You can filter violations, test candidate invariants, trigger checks with Ctrl+Enter, and copy unified diffs with one click.
@@ -158,7 +158,7 @@ The tool runs locally on your machine with zero external network calls. We welco
 
 **Post 1 (Main):**
 ```text
-We are launching Ayentra v0.1.0.
+We are launching Ayentra.
 
 It is an invariant verification gate and auto-patch engine for Python systems:
 • Finds edge-case violations via property-based shrinking
@@ -213,7 +213,7 @@ https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site
 ### Channel 3: LinkedIn Founder Announcement
 
 ```text
-Today we are introducing Ayentra v0.1.0: an open-source invariant verification gate and self-healing CI engine for Python systems.
+Today we are introducing Ayentra: an open-source invariant verification gate and self-healing CI engine for Python systems.
 
 In high-throughput services such as payment gateways, card issuance, and inventory allocation, traditional unit tests only verify expected scenarios. Subtle logic flaws (such as negative escrow holds, division-by-zero on non-finite floats, or concurrent allocation races) bypass code reviews and cause silent ledger drift in production.
 

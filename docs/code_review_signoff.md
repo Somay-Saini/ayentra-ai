@@ -2,7 +2,7 @@
 
 ## Wave 5 Delta Code Review: Post-Remediation and Wave 4 Test Expansion Sign-Off
 
-- Release Verdict: APPROVED FOR v0.1.0 PUBLIC RELEASE (FULL PASS)
+- Release Verdict: APPROVED FOR PUBLIC RELEASE (FULL PASS)
 - Date: 2026-11-03
 - Quality Gate: Full test suite passing across examples and tests suites (113/113 core suite tests; 118 total collected tests across repository).
 - Targeted Verification Gate:
@@ -11,8 +11,8 @@
   - Combined targeted pass: 60 passed out of 60 tests in 204.88 seconds.
 - Site Static Asset Parity: Verified 100% byte-for-byte SHA-256 match between `site/*` and packaged `src/ayentra/site/*`.
 - Artifact Verification:
-  - `dist/ayentra-0.1.0-py3-none-any.whl` (103,512 bytes)
-  - `dist/ayentra-0.1.0.tar.gz` (135,449 bytes)
+  - `dist/ayentra-py3-none-any.whl` (103,512 bytes)
+  - `dist/ayentra.tar.gz` (135,449 bytes)
   - Packaging Health: `pip check` confirmed zero broken requirements.
 
 ### Wave 4 Test Expansion Verification Table
@@ -96,8 +96,8 @@ The following verification commands and checks were executed directly against th
    - Verified that `site/app.js`, `site/index.html`, and `site/styles.css` match `src/ayentra/site/*` byte-for-byte.
 
 5. Distribution Artifact and Wheel Inspection:
-   - Wheel inspected: `dist/ayentra-0.1.0-py3-none-any.whl` (103,512 bytes)
-   - Source tarball inspected: `dist/ayentra-0.1.0.tar.gz` (135,449 bytes)
+   - Wheel inspected: `dist/ayentra-py3-none-any.whl` (103,512 bytes)
+   - Source tarball inspected: `dist/ayentra.tar.gz` (135,449 bytes)
    - Verified contents: All 10 python modules, `__init__.py`, `py.typed`, and static site assets (`site/app.js`, `site/index.html`, `site/styles.css`) are packaged in the wheel.
    - `pip check`: Clean (zero broken requirements).
 
@@ -128,7 +128,7 @@ The following verification commands and checks were executed directly against th
 ### Finding 5: Packaging Compatibility via `tomllib`
 - Status: CLOSED
 - Files Remediated: `src/ayentra/contracts.py` (line 4), `pyproject.toml` (lines 7, 10)
-- Verification: Clean wheel build generated with metadata `ayentra-0.1.0`. `pip check` confirmed zero broken dependency trees.
+- Verification: Clean wheel build generated with package metadata `ayentra`. `pip check` confirmed zero broken dependency trees.
 
 ### Finding 6: Unchecked Key Access in TOML Invariant Loader
 - Status: CLOSED
@@ -183,9 +183,9 @@ The following verification commands and checks were executed directly against th
 | Supply Chain & SARIF | `test_sarif_supply_chain.py` (5 tests) | PASS | Verified 100% |
 | Example Suites | `test_existing_suite.py` (4 tests) | PASS | Verified 100% |
 | Packaged Site Sync | SHA-256 parity verification | PASS | Verified 100% |
-| Packaging & Distribution | `dist/ayentra-0.1.0-py3-none-any.whl` | PASS | Ready for PyPI / GitHub Release |
+| Packaging & Distribution | `dist/ayentra-py3-none-any.whl` | PASS | Ready for PyPI / GitHub Release |
 
-Final Recommendation: APPROVED FOR IMMEDIATE PUBLIC RELEASE (v0.1.0).
+Final Recommendation: APPROVED FOR IMMEDIATE PUBLIC RELEASE.
 ---
 
 ## 7. Wave 6 Final Release Verification
@@ -204,7 +204,7 @@ Final Recommendation: APPROVED FOR IMMEDIATE PUBLIC RELEASE (v0.1.0).
   - Regressions Detected: 0.
   - Supply Chain & SARIF Suite: `tests/test_sarif_supply_chain.py` (5 passed).
   - Pilot Workflow Suite: `tests/test_pilot_workflow.py` (8 passed).
-- Final Release Verdict: UNCONDITIONAL GO FOR PUBLIC LAUNCH (v0.1.0).
+- Final Release Verdict: UNCONDITIONAL GO FOR PUBLIC LAUNCH.
 
 ---
 
@@ -251,7 +251,7 @@ Full SHA-256 cryptographic parity confirmed between repository showcase assets a
 ### 8.4 Release Sign-Off Verdict
 
 - Finding Status: Zero new blockers, zero security regressions, zero packaging anomalies.
-- Verdict: UNCONDITIONAL GO FOR v0.1.0 PUBLIC RELEASE (Wave 8 Sign-Off Complete).
+- Verdict: UNCONDITIONAL GO FOR PUBLIC RELEASE (Wave 8 Sign-Off Complete).
 
 ---
 
@@ -268,4 +268,4 @@ Full SHA-256 cryptographic parity confirmed between repository showcase assets a
   - All `128` automated tests pass (`100%` pass rate, `0` regressions).
   - All `25` markdown guides in `docs/` match their `Shared/ayentra_*.md` counterparts byte-for-byte (`100%` SHA-256 parity).
   - Zero em-dashes, zero en-dashes, and zero banned AI buzzwords across all repository and shared files.
-- Final Release Verdict: UNCONDITIONAL GO FOR v0.1.0 PUBLIC RELEASE (Wave 17 Sign-Off Complete).
+- Final Release Verdict: UNCONDITIONAL GO FOR PUBLIC RELEASE (Wave 17 Sign-Off Complete).

@@ -239,8 +239,11 @@ def test_site_directories_and_sbom_panel_parity() -> None:
     html = (site_dirs[0] / "index.html").read_text(encoding="utf-8")
     assert 'id="sbom"' in html
     assert "CycloneDX" in html
-    assert "ayentra==1.0.0" in html
+    assert "requirements-security.txt" in html
     assert "Somay-Saini/ayentra-ai" in html
+    assert "v1.0.0" not in html
+    assert "v0.1.0" not in html
+    assert "ayentra==1.0.0" not in html
 
 
 def test_readme_and_release_dossier_link_all_24_docs() -> None:

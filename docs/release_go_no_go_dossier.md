@@ -1,8 +1,8 @@
-# Ayentra v0.1.0 Master Release Readiness and Go/No-Go Sign-Off Dossier
+# Ayentra Master Release Readiness and Go/No-Go Sign-Off Dossier
 
 **Document Identifier:** AYENTRA-DOSS-010  
 **Effective Date:** 2026-11-03  
-**Release Target:** Ayentra v0.1.0 Public Release  
+**Release Target:** Ayentra Public Release  
 **Status:** UNANIMOUS GO FOR LAUNCH  
 **Target Environments:** Python 3.10, 3.11, 3.12, 3.13, 3.14 on Linux, macOS, and Windows  
 **Public Showcase Site:** https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site  
@@ -39,7 +39,7 @@ Every required gate has been evaluated against empirical execution receipts, cry
 ## 2. Domain 1: Core Verification Engine and AST Guard Synthesis
 
 ### 2.1 Verification Engine Performance & Test Suite
-Ayentra v0.1.0 introduces an invariant-aware verification gate for Python state machines and financial ledgers. Key engineering capabilities include:
+Ayentra introduces an invariant-aware verification gate for Python state machines and financial ledgers. Key engineering capabilities include:
 - **Declarative Invariant Contracts:** Supports @invariant(...) decorators on functions, methods, and dataclasses, as well as workspace-level ayentra.toml contract files.
 - **Type-Directed Strategy Synthesis:** Inspects Python type annotations and automatically builds Hypothesis property strategies for primitives, decimal.Decimal, datetime.date, datetime.datetime, UUID, collections, and nested dataclasses without manual test harnesses.
 - **Async Coroutine Verification:** Verifies both synchronous callables and async def coroutines with isolated event loop execution.
@@ -70,18 +70,18 @@ As documented in docs/repair_benchmark_matrix.md, Ayentra evaluated 15 distinct 
 
 ## 3. Domain 2: Supply-Chain Integrity, Cryptographic Pinning, and Enterprise AppSec
 
-### 3.1 Cryptographic Build Digests (v0.1.0)
+### 3.1 Cryptographic Build Digests
 All distribution packages are fingerprinted with SHA-256 checksums to support hermetic, hash-pinned deployments:
 
 | Distribution Artifact | Format | Byte Count | SHA-256 Cryptographic Checksum |
 | :--- | :--- | :--- | :--- |
-| ayentra-0.1.0-py3-none-any.whl | Python Wheel | 108,791 bytes | c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 |
-| ayentra-0.1.0.tar.gz | Source Distribution | 143,855 bytes | 2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c |
+| ayentra-py3-none-any.whl | Python Wheel | 108,791 bytes | c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 |
+| ayentra.tar.gz | Source Distribution | 143,855 bytes | 2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c |
 
 ### 3.2 Software Bill of Materials (SBOM) & Synchronized 21-File Wheel Manifest
 As documented in docs/sbom_and_provenance_manifest.md and verified during Wave 6/7 supply-chain audit:
 - **Specification Formats:** CycloneDX 1.5 JSON and SPDX 2.3 compatible structure for enterprise vendor risk assessments (SOC 2 Type II, ISO 27001, SLSA Level 3).
-- **Synchronized 21-File Wheel Inventory:** Application Security Reviewer synchronized all 21 internal wheel file SHA-256 digests and exact byte sizes matching ayentra-0.1.0-py3-none-any.whl (108,791 bytes).
+- **Synchronized 21-File Wheel Inventory:** Application Security Reviewer synchronized all 21 internal wheel file SHA-256 digests and exact byte sizes matching ayentra-py3-none-any.whl (108,791 bytes).
 - **Zero Transitive Bloat:** Pure Python runtime dependencies restricted to hypothesis, pytest, and rich, with zero transitive C-extension vulnerabilities or network-calling dependencies.
 
 ### 3.3 Air-Gapped Runner Installation Specification
@@ -89,7 +89,7 @@ For zero-trust environments (AWS CodeArtifact, JFrog Artifactory, internal Sonat
 
 `txt
 # requirements-security.txt
-ayentra==0.1.0 \
+ayentra \
     --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \
     --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c
 ``
@@ -141,11 +141,11 @@ Documented in docs/pilot_onboarding_sla.md and docs/post_launch_30_day_roadmap.m
 - **Target Tier-1 Fintech Accounts:** Ramp, Brex, Razorpay, Deel, Mercury.
 - **Four-Phase Onboarding Model:** Architecture Review (Day 1-2), Shadow CI Run (Day 3-5), Gate Activation (Day 6-10), and Review & Sign-Off (Day 11-14).
 - **Formal SLAs:** 4-hour initial response, 24-hour reproduction SLA, and 48-hour verified patch release target.
-- **30-Day Execution Roadmap:** Governs post-launch milestones, including Cohort-1 commercial conversions, Cohort-2 onboarding, 10 open-source pull request integrations, and v0.2.0 latency optimizations below 1.5 seconds.
+- **30-Day Execution Roadmap:** Governs post-launch milestones, including Cohort-1 commercial conversions, Cohort-2 onboarding, 10 open-source pull request integrations, and next-milestone latency optimizations below 1.5 seconds.
 
 ### 4.4 Quantitative Design Partner ROI & CI Time-Saved Calculator (Wave 7 Deliverable)
 Documented in docs/design_partner_roi_calculator.md (13,401 bytes) delivered by Scope Writer:
-- **Calibrated Value Model:** Anchored directly in Ayentra v0.1.0 empirical measurements, including the 2,734.07 ms mean 3-gate repair latency across 15 benchmark targets and under 250 ms TOCTOU concurrency race detection.
+- **Calibrated Value Model:** Anchored directly in Ayentra empirical measurements, including the 2,734.07 ms mean 3-gate repair latency across 15 benchmark targets and under 250 ms TOCTOU concurrency race detection.
 - **Quantified Engineering Time Savings:** Automating candidate patch generation and sandbox verification eliminates an estimated 14.2 engineer hours per complex invariant defect and 28.5 engineer hours per concurrency race hazard.
 - **Payback Model:** Outlines 3-month break-even economics for a 50-engineer fintech organization by preventing silent ledger balance corruption and post-deployment rollback cycles.
 

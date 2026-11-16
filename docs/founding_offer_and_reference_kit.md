@@ -1,5 +1,5 @@
 # Ayentra Founding Team Offer Letter, Equity and Reference Check Playbook
-Version: 1.0.0
+Classification: Production Standard
 Author: Hiring Partner (Ayentra)
 Target: CEO, Founders, and Engineering Hiring Committee
 Standard: Ayentra Human Taste and Craft Playbook

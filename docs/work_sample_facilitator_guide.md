@@ -1,5 +1,5 @@
 # Ayentra Founding Engineer Live Work-Sample and Pair-Debugging Facilitator Guide
-Version: 1.0.0
+Classification: Production Standard
 Author: Hiring Partner (Ayentra)
 Target: Technical Interview Facilitators and Founding Engineering Leads
 Standard: Ayentra Human Taste and Craft Playbook

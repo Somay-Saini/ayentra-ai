@@ -2,18 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
-
-## [1.0.0] - 2026-11-16
+## [2026-11-16] Production Release
 
 ### Added & Changed
-- **Production Release (`1.0.0`) & Repository Naming (`Somay-Saini/ayentra-ai`)**:
+- **Production Release & Repository Naming (`Somay-Saini/ayentra-ai`)**:
   - Promoted package classifier to `Development Status :: 5 - Production/Stable` and updated PyPI/GitHub metadata to `Somay-Saini/ayentra-ai`.
   - Added multi-step state transition verification (`TransitionSpec`, `TransactionPolicy` with `strict_atomic` and `selective_drop`, `SecurityPrincipal`, `StateSnapshot`, `transition_invariant`, `load_toml_transitions`).
   - Added field-allowlist + security audit dispatch AST repair synthesis and anti-silent-drop / anti-silent-403 regression assertions.
   - Emitted OASIS SARIF 2.1.0 compliant non-empty fix `replacements` when patched diffs are present, expanded suite to `139` passing tests.
 
-## [0.1.0] - 2026-11-03
+## [2026-11-03] Initial Release
 
 ### Added
 

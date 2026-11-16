@@ -12,9 +12,9 @@ Ayentra stops these defects before merge by coupling Abstract Syntax Tree (AST) 
 
 ---
 
-## 2. Verified Technical Benchmarks (Ayentra v0.1.0 Ground Truth)
+## 2. Verified Technical Benchmarks (Ayentra Ground Truth)
 
-All formulas in this ROI calculator are calibrated against empirical benchmarks from the Ayentra v0.1.0 test harness and repair matrix (`docs/repair_benchmark_matrix.md`):
+All formulas in this ROI calculator are calibrated against empirical benchmarks from the Ayentra test harness and repair matrix (`docs/repair_benchmark_matrix.md`):
 
 | Benchmark Metric | Verified Measurement | Engineering Implication |
 | :--- | :--- | :--- |

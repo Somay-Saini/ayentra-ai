@@ -2,11 +2,11 @@
 
 ## 1. Executive Summary and 30-Day North Star
 
-This roadmap defines the four-week operational plan bridging the Ayentra v0.1.0 public launch to the v0.2.0 production release and the conversion of the first five enterprise design partners.
+This roadmap defines the four-week operational plan bridging the Ayentra public launch to the next production milestone and the conversion of the first five enterprise design partners.
 
 ### Core 30-Day Objectives
 1. **Commercial Conversion**: Convert Cohort-1 design partners (Ramp, Brex, Razorpay) and onboard Cohort-2 (Deel, Mercury) to secure 5 annual production subscriptions ($40,000 to $120,000 ACV).
-2. **Product Evolution (v0.1.0 to v0.2.0)**: Harden AST invariant synthesis, expand concurrency race detection across asynchronous Python runtimes, and reduce average verification latency below 1.5 seconds.
+2. **Product Evolution (Next Milestone)**: Harden AST invariant synthesis, expand concurrency race detection across asynchronous Python runtimes, and reduce average verification latency below 1.5 seconds.
 3. **Open Source Adoption**: Complete 10 reference pull request integrations across tier-1 open source repositories to build bottom-up developer credibility.
 4. **Founding Team Onboarding**: Screen, hire, and onboard the Founding Verification Engine Engineer and Founding Repair Engineer using the standard calibration and scorecard packets.
 
@@ -37,14 +37,14 @@ flowchart TD
         G2_VERIFY --> C1_REVIEW["Cohort-1 Commercial Conversion Review"]
     end
 
-    subgraph W3["Week 3: Days 15-21 (Founding Hiring & v0.2.0 Freeze)"]
+    subgraph W3["Week 3: Days 15-21 (Founding Hiring & Milestone Freeze)"]
         C1_REVIEW --> HIRE_LOOP["Founding Team Technical Screens & Live Debugging Loops"]
-        HIRE_LOOP --> SCOPE_FREEZE["v0.2.0 Architecture & Scope Freeze"]
+        HIRE_LOOP --> SCOPE_FREEZE["Next-Milestone Architecture & Scope Freeze"]
         SCOPE_FREEZE --> BENCH_PASS["Engine Benchmark Audit (< 100ms AST scans)"]
     end
 
-    subgraph W4["Week 4: Days 22-30 (v0.2.0 Release & Cohort-2 Intake)"]
-        BENCH_PASS --> V020_REL["v0.2.0 Production Release on PyPI & GitHub Actions"]
+    subgraph W4["Week 4: Days 22-30 (Production Milestone & Cohort-2 Intake)"]
+        BENCH_PASS --> V020_REL["Production Milestone Release on PyPI & GitHub Actions"]
         V020_REL --> C2_INTAKE["Cohort-2 Intake: Deel, Mercury, Inbound Leads"]
         V020_REL --> ENG_ONBOARD["Founding Engineer Day 1-3 Onboarding & First PR"]
         C2_INTAKE --> MILESTONE_5["5 Paid Design Partners Signed ($40k-$120k ACV)"]
@@ -90,14 +90,14 @@ flowchart TD
   - Run `ayentra check` in shadow mode to capture Gate 1 minimal counterexamples.
 
 ### Week 1 Dependencies, Acceptance Criteria, and Risk Triggers
-- **Dependencies**: v0.1.0 release artifacts published to PyPI; GitHub Action `ayentra/action@v1` active; showcase site live.
+- **Dependencies**: Release artifacts published to PyPI; GitHub Action `Somay-Saini/ayentra-ai@main` active; showcase site live.
 - **Acceptance Criteria**:
   1. Zero unhandled SEV-1 issues during launch window.
   2. 10 OSS pull requests submitted with reproducible invariant receipts.
   3. Gate 1 cleared for at least 2 Cohort-1 accounts (reproducible violation caught in shadow test).
 - **Risk Triggers & Action**:
   - *Risk*: Community flags false-positive invariant violation on standard Python dataclasses.
-  - *Mitigation*: Engine-Lead deploys patch within 45 minutes; release hotfix `v0.1.1` to PyPI.
+  - *Mitigation*: Engine-Lead deploys patch within 45 minutes; release hotfix package to PyPI.
 
 ---
 
@@ -146,12 +146,12 @@ flowchart TD
 
 ---
 
-## 5. Week 3 (Days 15 to 21): Founding Team Hiring Loops and v0.2.0 Scope Freeze
+## 5. Week 3 (Days 15 to 21): Founding Team Hiring Loops and Next-Milestone Scope Freeze
 
 ### Primary Objectives
 - Execute live technical screening and debugging loops for the Founding Verification Engine Engineer and Founding Repair Engineer.
 - Grade candidate submissions using the deterministic standards in `docs/candidate_calibration_packet.md`.
-- Finalize and freeze feature scope for the upcoming v0.2.0 release.
+- Finalize and freeze feature scope for the upcoming milestone release.
 - Audit verification engine performance against the benchmarks in `docs/benchmarks.md`.
 
 ### Daily Execution Breakdown
@@ -164,9 +164,9 @@ flowchart TD
   - Enforce hiring rules: zero gut-feel rejections, deterministic commit evaluation, no corporate jargon.
 - Select top candidate and extend formal founding engineer offer.
 
-#### Days 18-19: v0.2.0 Architecture and Scope Freeze
+#### Days 18-19: Next-Milestone Architecture and Scope Freeze
 - Convene core engineering leads (CEO, Engine-Lead, Repair-Lead, QA-Gatekeeper).
-- Freeze scope for v0.2.0 release:
+- Freeze scope for next milestone:
   1. **Asyncio Concurrency Engine**: Native event loop trace scheduler supporting `asyncio` and `anyio` coroutines alongside threaded execution.
   2. **Multi-File SARIF Aggregation**: Unified code scanning reports across distributed microservice repositories.
   3. **Interactive Studio Enhancements**: Direct terminal patch application (`ayentra apply-patch`) with one-click rollback.
@@ -184,10 +184,10 @@ flowchart TD
   - Zero regression escapes across all 7 reference dogfooding targets.
 
 ### Week 3 Dependencies, Acceptance Criteria, and Risk Triggers
-- **Dependencies**: Candidate pipeline sourced by Hiring Partner; candidate calibration packet active; v0.2.0 design proposals reviewed.
+- **Dependencies**: Candidate pipeline sourced by Hiring Partner; candidate calibration packet active; next-milestone design proposals reviewed.
 - **Acceptance Criteria**:
   1. Founding engineer offer accepted with confirmed start date by Day 25.
-  2. v0.2.0 scope frozen with zero unresolved architectural blockers.
+  2. Next-milestone scope frozen with zero unresolved architectural blockers.
   3. Benchmark test confirms sub-100ms AST analysis.
 - **Risk Triggers & Action**:
   - *Risk*: Final candidate negotiation stalls over equity or start date.
@@ -195,26 +195,26 @@ flowchart TD
 
 ---
 
-## 6. Week 4 (Days 22 to 30): v0.2.0 Release Gate, Cohort-2 Intake, and Founding Team Onboarding
+## 6. Week 4 (Days 22 to 30): Next-Milestone Release Gate, Cohort-2 Intake, and Founding Team Onboarding
 
 ### Primary Objectives
-- Package, verify, and publish Ayentra v0.2.0 to PyPI and GitHub Marketplace.
+- Package, verify, and publish Ayentra milestone to PyPI and GitHub Marketplace.
 - Kick off Cohort-2 design partner onboarding with Deel, Mercury, and inbound enterprise leads.
 - Onboard new founding engineer using the 72-hour fast-track protocol in `docs/onboarding_30_60_90_scorecard.md`.
 - Close and celebrate the first 5 paid design partner contracts.
 
 ### Daily Execution Breakdown
 
-#### Days 22-24: v0.2.0 Release Candidate and Validation Gate
-- Cut release branch `release/v0.2.0`.
+#### Days 22-24: Release Candidate and Validation Gate
+- Cut release branch `release/next-milestone`.
 - Execute full cross-platform CI verification (Linux, macOS, Windows across Python 3.10 through 3.13):
   ```bash
   python -m build
   python -m venv test_v020_env
-  test_v020_env/bin/pip install dist/ayentra-0.2.0-py3-none-any.whl
+  test_next_env/bin/pip install dist/ayentra-*.whl
   test_v020_env/bin/ayentra check examples/customer_pilot.py --sarif v020_report.sarif
   ```
-- Publish v0.2.0 release to PyPI and update GitHub Action pointer `ayentra/action@v1`.
+- Publish milestone release to PyPI and update GitHub Action pointer `Somay-Saini/ayentra-ai@main`.
 - Update documentation and showcase site to highlight async verification capabilities.
 
 #### Days 25-27: Founding Engineer Day 1-3 Onboarding
@@ -231,9 +231,9 @@ flowchart TD
 - Conduct 30-day executive retrospective to set Quarter 1 roadmap milestones.
 
 ### Week 4 Dependencies, Acceptance Criteria, and Risk Triggers
-- **Dependencies**: v0.2.0 code freeze complete; founding engineer on-site; Cohort-1 commercial approvals processed.
+- **Dependencies**: milestone code freeze complete; founding engineer on-site; Cohort-1 commercial approvals processed.
 - **Acceptance Criteria**:
-  1. Ayentra v0.2.0 published cleanly to PyPI and verified in production CI.
+  1. Ayentra milestone published cleanly to PyPI and verified in production CI.
   2. Founding engineer merges first production PR within 72 hours of start.
   3. 5 signed enterprise design partner commitments ($40,000 to $120,000 ACV).
 - **Risk Triggers & Action**:

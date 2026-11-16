@@ -1,5 +1,5 @@
 # Ayentra Founding Team Hiring Kit and Technical Interview Scorecards
-Version: 1.0.0
+Classification: Production Standard
 Author: Hiring Partner (Ayentra)
 Target: Ayentra Founding Engineering Loop, Technical Interviewers, and Founders
 Standard: Ayentra Human Taste and Craft Playbook

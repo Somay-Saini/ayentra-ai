@@ -2,14 +2,14 @@
 
 ## 1. Executive Mission, Scope, and Launch Architecture
 
-This runbook governs the operational execution of the Ayentra v1.0.0 public launch. It covers the 3-hour pre-launch countdown (T-180m to T-0), the public release window, and the 72-hour post-launch monitoring and incident mitigation protocol.
+This runbook governs the operational execution of the Ayentra public launch. It covers the 3-hour pre-launch countdown (T-180m to T-0), the public release window, and the 72-hour post-launch monitoring and incident mitigation protocol.
 
 ### Core Release Artifacts and Endpoints
 1. **PyPI Distribution Package**:
-   - Wheel: `dist/ayentra-1.0.0-py3-none-any.whl` (SHA-256: `aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67`)
-   - Source Distribution: `dist/ayentra-1.0.0.tar.gz` (SHA-256: `4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574`)
+   - Wheel: `dist/ayentra-py3-none-any.whl` (SHA-256: `f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef`)
+   - Source Distribution: `dist/ayentra.tar.gz` (SHA-256: `1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65`)
 2. **GitHub Composite Action**:
-   - Location: `action.yml` (Tagged: `v1.0.0` and `v1`)
+   - Location: `action.yml` (Branch: `main`)
    - Functionality: Pre-merge verification gate running property tests, shrinking, SARIF 2.1.0 generation, and PR review comments.
 3. **Showcase Landing Page and Interactive Studio**:
    - Live URL: `https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site`
@@ -44,7 +44,7 @@ This runbook governs the operational execution of the Ayentra v1.0.0 public laun
 - **T-150m (11:00 UTC)**: Repair-Lead performs clean virtualenv wheel smoke test:
   ```bash
   python -m venv test_env
-  ./test_env/bin/pip install dist/ayentra-1.0.0-py3-none-any.whl
+  ./test_env/bin/pip install dist/ayentra-py3-none-any.whl
   ./test_env/bin/ayentra --version
   ./test_env/bin/ayentra check examples/customer_pilot.py --sarif test.sarif
   ```
@@ -82,13 +82,13 @@ This runbook governs the operational execution of the Ayentra v1.0.0 public laun
   - Incident Commander (CEO): Final GO to publish
 - **T-30m (13:00 UTC)**: Publish release to PyPI and push Git tag:
   ```bash
-  git tag -a v1.0.0 -m "Release v1.0.0: Ayentra Invariant Verification Gate"
-  git push origin v1.0.0
-  twine upload dist/ayentra-0.1.0*
+  git push origin main
+  git status
+  twine upload dist/ayentra*
   ```
 - **T-15m (13:15 UTC)**: Tag composite action:
   ```bash
-  git tag -fa v1 -m "Update v1 action pointer to v1.0.0"
+  git push origin main
   git push origin v1 --force
   ```
 - **T-0m (13:30 UTC)**: Public Announcement broadcast:
@@ -140,9 +140,9 @@ flowchart TD
     F -->|Pass| G["Rebuild Artifacts (Wheel & Tarball)"]
 
     G --> H{"Target Component"}
-    H -->|Python Package| I["Publish Hotfix Release (v0.1.1) to PyPI"]
+    H -->|Python Package| I["Publish Hotfix Release to PyPI"]
     H -->|Showcase Site| J["Replace Site Assets via OpenBot Site CLI"]
-    H -->|GitHub Action| K["Update Action Tag (v1 / v0.1.1)"]
+    H -->|GitHub Action| K["Update Action Branch (main)"]
 
     I --> L["Run Post-Publish Smoke Check"]
     J --> L
@@ -167,7 +167,7 @@ pytest tests/ examples/ -v --tb=short
 # Verify wheel installation and CLI execution in an isolated virtual environment
 python -m venv .smoke_venv
 .smoke_venv/bin/pip install --upgrade pip
-.smoke_venv/bin/pip install dist/ayentra-1.0.0-py3-none-any.whl
+.smoke_venv/bin/pip install dist/ayentra-py3-none-any.whl
 .smoke_venv/bin/ayentra --version
 .smoke_venv/bin/ayentra --help
 ```
@@ -216,7 +216,7 @@ curl -s -o /dev/null -w "%{http_code}\n" https://ayentra-self-healing-ci-gate-fo
 
 | Severity Level | Definition & Trigger Scenarios | Response SLA | Target Resolution | Primary Owner | Immediate Recovery Command / Action |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **SEV-1 (Critical)** | - Showcase site completely offline (HTTP 5xx).<br>- PR bot throws uncaught exceptions and halts customer CI merge queues.<br>- Critical false-positive invariant violation on standard Python idioms.<br>- Wheel fails to install on supported Python versions (3.10-3.13). | < 10 mins | < 45 mins | Engine-Lead / Repair-Lead | 1. Roll back PR bot check: set `continue-on-error: true`.<br>2. Re-publish site assets or previous stable wheel.<br>3. Rebuild and publish hotfix package `v0.1.1`. |
+| **SEV-1 (Critical)** | - Showcase site completely offline (HTTP 5xx).<br>- PR bot throws uncaught exceptions and halts customer CI merge queues.<br>- Critical false-positive invariant violation on standard Python idioms.<br>- Wheel fails to install on supported Python versions (3.10-3.13). | < 10 mins | < 45 mins | Engine-Lead / Repair-Lead | 1. Roll back PR bot check: set `continue-on-error: true`.<br>2. Re-publish site assets or previous stable wheel.<br>3. Rebuild and publish hotfix package. |
 | **SEV-2 (High)** | - Sandbox patch synthesis timeout exceeds 120 seconds on complex models.<br>- SARIF schema rejected by GitHub Code Scanning parser.<br>- Invariant shrinking fails to reduce counterexample to minimal form.<br>- CLI flag parsing error on optional arguments. | < 30 mins | < 2 hours | Repair-Lead / QA-Gatekeeper | 1. Issue temporary configuration workaround in `ayentra.toml` (for example, lower `max-examples = 50`).<br>2. Patch AST transformer or SARIF serializer.<br>3. Verify fix in sandbox and release hotfix. |
 | **SEV-3 (Medium)** | - Formatting discrepancy in PR comment unidiff presentation.<br>- Documentation link broken or typo on landing page.<br>- Non-blocking console warning emitted during property sweeps.<br>- Minor visual misalignment in local studio view. | < 2 hours | < 12 hours | Project Partner / QA-Gatekeeper | 1. Update markdown documentation or CSS styles.<br>2. Re-sync showcase site using OpenBot site tool.<br>3. Queue non-urgent fixes for next patch release. |
 
@@ -235,7 +235,7 @@ If the public showcase site exhibits formatting errors, broken demo links, or as
    curl -I https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site
    ```
 
-### Runbook B: Emergency Wheel Rebuild and PyPI Patch Deployment (v0.1.1)
+### Runbook B: Emergency Wheel Rebuild and PyPI Patch Deployment
 If a critical runtime crash or AST syntax bug requires an immediate patch release:
 1. Engine-Lead implements minimal bug fix and regression test in `tests/test_hotfix.py`.
 2. Update version identifier to `0.1.1` in `pyproject.toml` and `src/ayentra/__init__.py`.
@@ -260,8 +260,8 @@ If a critical runtime crash or AST syntax bug requires an immediate patch releas
    ```
 7. Tag Git repository:
    ```bash
-   git tag -a v0.1.1 -m "Release v0.1.1 hotfix"
-   git push origin v0.1.1
+   git commit --allow-empty -m "Trigger hotfix release"
+   git push origin main
    ```
 
 ### Runbook C: Emergency GitHub Action Rollback
@@ -280,7 +280,7 @@ Instruct the customer engineering lead to execute this single command:
 ```yaml
 # In customer .github/workflows/ayentra.yml:
 - name: Run Ayentra Verification Gate
-  uses: ayentra/action@v1
+  uses: Somay-Saini/ayentra-ai@main
   continue-on-error: true  # Add this flag to unblock merges immediately
 ```
 

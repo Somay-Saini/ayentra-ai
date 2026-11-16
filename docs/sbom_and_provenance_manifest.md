@@ -1,7 +1,7 @@
-# Ayentra v1.0.0 Software Bill of Materials (SBOM) and Supply Chain Provenance Manifest
+# Ayentra Software Bill of Materials (SBOM) and Supply Chain Provenance Manifest
 
 **Product:** Ayentra (Invariant Verification Gate for Python)  
-**Version:** 1.0.0  
+**Classification:** Production Standard  
 **Specification Standards:** CycloneDX 1.5 JSON, SPDX 2.3 Compatible  
 **Classification:** Enterprise Security & Vendor Procurement Manifest  
 **Effective Date:** 2026-11-03  
@@ -11,7 +11,7 @@
 
 ## 1. Executive Summary and Build Provenance
 
-Ayentra v1.0.0 is a deterministic property-based invariant verification gate and candidate patch testing tool for Python. Designed for enterprise financial technology and high-assurance codebases, Ayentra executes 100% offline with zero external network socket calls.
+Ayentra is a deterministic property-based invariant verification gate and candidate patch testing tool for Python. Designed for enterprise financial technology and high-assurance codebases, Ayentra executes 100% offline with zero external network socket calls.
 
 This document provides the formal Software Bill of Materials (SBOM), cryptographic SHA-256 digests for release artifacts, detailed file inventories of bundled wheel components, a minimal runtime dependency tree, and verification procedures for procurement compliance (SOC 2 Type II, ISO 27001, and SLSA Level 3).
 
@@ -19,14 +19,14 @@ This document provides the formal Software Bill of Materials (SBOM), cryptograph
 
 | Distribution Artifact | Format | Byte Size | SHA-256 Cryptographic Digest |
 | :--- | :--- | :--- | :--- |
-| `ayentra-1.0.0-py3-none-any.whl` | Binary Wheel (PEP 427) | 220,944 | `aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67` |
-| `ayentra-1.0.0.tar.gz` | Source Archive (sdist) | 266,852 | `4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574` |
+| `ayentra-py3-none-any.whl` | Binary Wheel (PEP 427) | 220,886 | `f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef` |
+| `ayentra.tar.gz` | Source Archive (sdist) | 266,863 | `1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65` |
 
 ---
 
 ## 2. Wheel Archive File Inventory and Integrity Manifest
 
-The binary release distribution `ayentra-1.0.0-py3-none-any.whl` contains 21 bundled entries. Each file has been independently hashed with SHA-256 to allow verification of package contents.
+The binary release distribution `ayentra-py3-none-any.whl` contains 21 bundled entries. Each file has been independently hashed with SHA-256 to allow verification of package contents.
 
 | Bundled File Path | Size (Bytes) | SHA-256 File Digest |
 | :--- | :--- | :--- |
@@ -46,11 +46,11 @@ The binary release distribution `ayentra-1.0.0-py3-none-any.whl` contains 21 bun
 | `ayentra/site/app.js` | 39,975 | `cc925980fdfdd72ad1e4c5980980406ba0deff3dd42f751b59e27e2739fc02e1` |
 | `ayentra/site/index.html` | 90,773 | `3ac8f94d5cf9ec1f49b1431ba987c202b3f71e9e25beeaa3e435c188987facfb` |
 | `ayentra/site/styles.css` | 31,289 | `98308ca47329b381301a70b31af6965baac94eeec5208ecfcf6b080ace8b89cc` |
-| `ayentra-0.1.0.dist-info/METADATA` | 15,968 | `fa877e74c06fb58e9d8819254ab8912f8fd65a84df0504c96604e130936db5bc` |
-| `ayentra-0.1.0.dist-info/WHEEL` | 91 | `98e75747d0b7c0c568bfb71263c3d8f970b3a374a6996087bc642be5cb09a1aa` |
-| `ayentra-0.1.0.dist-info/entry_points.txt` | 45 | `50b2a690d42553a0e18ace7ee60fa203fe24d0dedc91bd1ed95155045922f1c5` |
-| `ayentra-0.1.0.dist-info/top_level.txt` | 8 | `b9dfb1c65eb68dfebe15c0668b8404cb0a9017167551c5ad721df4805056f26f` |
-| `ayentra-0.1.0.dist-info/RECORD` | 1,616 | `410e0ffe2405aad9f41b31c1bdec372701cb8f1fa72e94ca567cd45135afeb0a` |
+| `ayentra.dist-info/METADATA` | 15,968 | `fa877e74c06fb58e9d8819254ab8912f8fd65a84df0504c96604e130936db5bc` |
+| `ayentra.dist-info/WHEEL` | 91 | `98e75747d0b7c0c568bfb71263c3d8f970b3a374a6996087bc642be5cb09a1aa` |
+| `ayentra.dist-info/entry_points.txt` | 45 | `50b2a690d42553a0e18ace7ee60fa203fe24d0dedc91bd1ed95155045922f1c5` |
+| `ayentra.dist-info/top_level.txt` | 8 | `b9dfb1c65eb68dfebe15c0668b8404cb0a9017167551c5ad721df4805056f26f` |
+| `ayentra.dist-info/RECORD` | 1,616 | `410e0ffe2405aad9f41b31c1bdec372701cb8f1fa72e94ca567cd45135afeb0a` |
 
 ---
 
@@ -109,7 +109,6 @@ The following machine-readable CycloneDX 1.5 JSON manifest is ready for direct i
       {
         "vendor": "Ayentra",
         "name": "Ayentra Release Pipeline",
-        "version": "1.0.0"
       }
     ],
     "authors": [
@@ -119,10 +118,9 @@ The following machine-readable CycloneDX 1.5 JSON manifest is ready for direct i
       }
     ],
     "component": {
-      "bom-ref": "pkg:pypi/ayentra@1.0.0",
+      "bom-ref": "pkg:pypi/ayentra",
       "type": "application",
       "name": "ayentra",
-      "version": "1.0.0",
       "description": "Invariant-aware verification gate with property-based shrinking, deterministic concurrency checks, and sandbox patch verification.",
       "licenses": [
         {
@@ -131,11 +129,11 @@ The following machine-readable CycloneDX 1.5 JSON manifest is ready for direct i
           }
         }
       ],
-      "purl": "pkg:pypi/ayentra@1.0.0",
+      "purl": "pkg:pypi/ayentra",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67"
+          "content": "f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef"
         }
       ],
       "externalReferences": [
@@ -145,11 +143,11 @@ The following machine-readable CycloneDX 1.5 JSON manifest is ready for direct i
         },
         {
           "type": "vcs",
-          "url": "https://github.com/ayentra/ayentra.git"
+          "url": "https://github.com/Somay-Saini/ayentra-ai.git"
         },
         {
           "type": "issue-tracker",
-          "url": "https://github.com/ayentra/ayentra/issues"
+          "url": "https://github.com/Somay-Saini/ayentra-ai/issues"
         }
       ]
     }
@@ -222,7 +220,7 @@ The following machine-readable CycloneDX 1.5 JSON manifest is ready for direct i
   ],
   "dependencies": [
     {
-      "ref": "pkg:pypi/ayentra@1.0.0",
+      "ref": "pkg:pypi/ayentra",
       "dependsOn": [
         "pkg:pypi/hypothesis@6.170.14",
         "pkg:pypi/rich@15.0.0",
@@ -264,20 +262,20 @@ Verify artifact checksums against the manifest:
 ```bash
 # Verify distribution archive digests
 cat << 'EOF' | sha256sum -c -
-aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67  ayentra-1.0.0-py3-none-any.whl
-4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574  ayentra-1.0.0.tar.gz
+f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef  ayentra-py3-none-any.whl
+1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65  ayentra.tar.gz
 EOF
 
 # Test wheel zip integrity without extracting
-python -m zipfile -t ayentra-1.0.0-py3-none-any.whl
+python -m zipfile -t ayentra-py3-none-any.whl
 ```
 
 ### 5.2 Verification on Windows PowerShell
 
 ```powershell
 # Compute and verify wheel hash
-$expectedWhl = "aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67"
-$actualWhl = (Get-FileHash -Path "dist\ayentra-1.0.0-py3-none-any.whl" -Algorithm SHA256).Hash.ToLower()
+$expectedWhl = "f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef"
+$actualWhl = (Get-FileHash -Path "dist\ayentra-py3-none-any.whl" -Algorithm SHA256).Hash.ToLower()
 
 if ($actualWhl -eq $expectedWhl) {
     Write-Host "Wheel SHA-256 integrity verified." -ForegroundColor Green
@@ -286,7 +284,7 @@ if ($actualWhl -eq $expectedWhl) {
 }
 
 # Test wheel zip integrity
-python -m zipfile -t "dist\ayentra-1.0.0-py3-none-any.whl"
+python -m zipfile -t "dist\ayentra-py3-none-any.whl"
 ```
 
 ### 5.3 Air-Gapped Installation with Hash Pinning
@@ -295,7 +293,7 @@ Install the distribution package directly using pip hash verification:
 
 ```bash
 python -m pip install --require-hashes -r - << 'EOF'
-ayentra==1.0.0     --hash=sha256:aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67     --hash=sha256:4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574
+ayentra     --hash=sha256:f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef     --hash=sha256:1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65
 EOF
 ```
 
@@ -325,13 +323,13 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 
 - **Zero External Scripts:** All client interactions, including the four-tab SBOM switcher and clipboard copy operations, are executed by local vanilla JavaScript (`app.js`). No external libraries or frameworks are loaded.
 - **Zero Third-Party Telemetry:** No analytics beacons, tracking pixels, or outbound HTTP requests (`connect-src 'none'`) are permitted or executed.
-- **Strict Hash Synchronization:** The embedded SBOM views and copy snippets in `index.html` and `app.js` exactly match the v1.0.0 release wheel (`aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67`) and source archive (`4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574`).
+- **Strict Hash Synchronization:** The embedded SBOM views and copy snippets in `index.html` and `app.js` exactly match the release wheel (`f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef`) and source archive (`1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65`).
 
 ---
 
 ## 7. Wave 9 to 17 Release Dossier, Taste Audit & Code Review Sign-Off Attestation
 
-The Ayentra v1.0.0 release governance process incorporates independent peer review, design taste auditing, and release readiness verification. All release governance dossiers have been cryptographically hashed and verified for supply chain reproducibility.
+The Ayentra release governance process incorporates independent peer review, design taste auditing, and release readiness verification. All release governance dossiers have been cryptographically hashed and verified for supply chain reproducibility.
 
 ### 7.1 Governance Artifact Integrity Hashes
 
@@ -339,11 +337,11 @@ The finalized release governance records and distribution artifacts match the fo
 
 | Artifact Path | Classification | Byte Size | SHA-256 Cryptographic Digest |
 | :--- | :--- | :--- | :--- |
-| docs/release_go_no_go_dossier.md | Wave 9 to 17 Production Go/No-Go Decision Record | 28,579 | d28ead3713fb0ce4b11cd7d70f70a1f6b325f5b3635bfabfb40847d88ff601e7 |
-| docs/code_review_signoff.md | Wave 9 to 17 Full Code Review Sign-Off | 19,205 | 6f94dbd270f78637f63ab9ca2bbef56c6a0ffab5684dfd0f1c3dd3c19e98c368 |
-| docs/taste_and_ui_audit_report.md | Wave 8 to 17 Taste & Aesthetic Quality Audit | 11,829 | 1afda8474b8f4824b5cce08d3508d26b831ff8bcf1ad6bbf5d4210cb2ab4acac |
-| dist/ayentra-1.0.0-py3-none-any.whl | Binary Distribution Wheel (PEP 427) | 220,944 | aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67 |
-| dist/ayentra-1.0.0.tar.gz | Source Distribution Archive (sdist) | 266,852 | 4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574 |
+| docs/release_go_no_go_dossier.md | Wave 9 to 17 Production Go/No-Go Decision Record | 28,525 | 5b077ef2d470a32f0e776737007792fbf7a552756d0c1913230a1fcd41840cd2 |
+| docs/code_review_signoff.md | Wave 9 to 17 Full Code Review Sign-Off | 19,138 | 2990cbae56ee70671c21112e5819ca827d6b108a3f6b4c631b6c56f8f0ced8ac |
+| docs/taste_and_ui_audit_report.md | Wave 8 to 17 Taste & Aesthetic Quality Audit | 11,815 | 43e4bf27ec34cd4a56723cb7b281d367a81634f4bdee34828786ceaf93947eb4 |
+| dist/ayentra-py3-none-any.whl | Binary Distribution Wheel (PEP 427) | 220,886 | f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef |
+| dist/ayentra.tar.gz | Source Distribution Archive (sdist) | 266,863 | 1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65 |
 
 ### 7.2 Release Documentation and Dependency Audit Verification
 
@@ -356,7 +354,7 @@ The finalized release governance records and distribution artifacts match the fo
 ## 8. Procurement and Security Sign-Off
 
 - **Package Name:** `ayentra`
-- **Release Version:** `1.0.0`
+- **Release Track:** Production
 - **Software Type:** Standalone Developer Tool & CI Verification Gate
 - **License Type:** MIT License (Permissive, Commercial Friendly)
 - **Zero-Egress Attestation:** Confirmed. No external API calls, tracking, or network transmission during invariant checks or patch verification.

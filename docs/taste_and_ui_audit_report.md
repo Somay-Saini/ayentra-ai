@@ -1,6 +1,6 @@
 # Ayentra Human-Craft and UI/UX Taste Audit Report
 
-**Audit Target:** Ayentra v0.1.0 Public Launch Sprint (Floto Web Usability Audit & Taste Governance)  
+**Audit Target:** Ayentra Public Launch Sprint (Floto Web Usability Audit & Taste Governance)  
 **Auditor:** Human-Taste-Auditor (Ayentra)  
 **Standard:** Ayentra Human Taste and Craft Playbook (`human_taste_playbook.md`)  
 **Status:** FULL PASS (100.0% Compliance)  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary and Audit Scope
 
-This audit report records the formal craft, character hygiene, visual hierarchy, and heuristic usability evaluation for the Ayentra v0.1.0 release package. The evaluation covers all 25 enterprise documentation guides in `docs/`, public repository documentation (`README.md`, `SECURITY.md`), and the public showcase web interface (`site/index.html`, `site/styles.css`, `site/app.js`).
+This audit report records the formal craft, character hygiene, visual hierarchy, and heuristic usability evaluation for the Ayentra release package. The evaluation covers all 25 enterprise documentation guides in `docs/`, public repository documentation (`README.md`, `SECURITY.md`), and the public showcase web interface (`site/index.html`, `site/styles.css`, `site/app.js`).
 
 ### 1.1 Core Verification Gates
 

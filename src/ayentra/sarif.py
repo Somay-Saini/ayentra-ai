@@ -140,7 +140,7 @@ def to_sarif(
                     "driver": {
                         "name": "Ayentra",
                         "version": "1.0.0",
-                        "informationUri": "https://github.com/ayentra/ayentra",
+                        "informationUri": "https://github.com/Somay-Saini/ayentra-ai",
                         "rules": rules,
                     }
                 },

@@ -1,5 +1,5 @@
 # Ayentra Founding Team 30-60-90 Day Onboarding and Performance Scorecard Playbook
-Version: 1.0.0
+Classification: Production Standard
 Author: Hiring Partner (Ayentra)
 Target: Founding Engineering Hires, Technical Leads, and CEO
 Standard: Ayentra Human Taste and Craft Playbook

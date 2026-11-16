@@ -1,6 +1,6 @@
 # Ayentra Real-World Repair Benchmark and Patch-Latency Matrix
 
-Release: Ayentra v0.1.0
+Target: Ayentra Production
 Discipline: Strict /ponytail architecture, stdlib AST transforms, non-destructive 3-gate sandbox.
 Character Hygiene Bar: 0 em-dashes, 0 en-dashes, 0 AI buzzwords.
 

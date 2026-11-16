@@ -6,14 +6,14 @@ This document outlines our supported versions, vulnerability disclosure procedur
 
 ---
 
-## 1. Supported Versions
+## 1. Supported Branches
 
 We provide active security patches, vulnerability triage, and dependency updates for the following release branches:
 
-| Version | Supported | Security Patch SLA |
+| Branch | Supported | Security Patch SLA |
 | :--- | :--- | :--- |
-| `1.0.x` (Current) | Yes | Active maintenance, 7-day critical fix release target |
-| `< 1.0.0` | No | Unsupported; upgrade to 1.0.0 or newer |
+| `main` (Current Production) | Yes | Active maintenance, 7-day critical fix release target |
+| Legacy snapshots | No | Unsupported; upgrade to latest `main` |
 
 ---
 

@@ -8,9 +8,9 @@ All metrics captured against a clean wheel distribution installed in an isolated
 | Metric | Specification | Verification Status |
 | :--- | :--- | :--- |
 | Package Name | `ayentra` | Verified |
-| Release Version | `0.1.0` | Verified |
-| Wheel Package | `ayentra-1.0.0-py3-none-any.whl` | Verified (220,944 bytes / 215.77 KB, SHA-256 `aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67`) |
-| Source Archive (sdist) | `ayentra-1.0.0.tar.gz` | Verified (266,852 bytes / 260.60 KB, SHA-256 `4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574`) |
+| Release Track | `Production` | Verified |
+| Wheel Package | `ayentra-py3-none-any.whl` | Verified (220,886 bytes / 215.71 KB, SHA-256 `f9929f32bf1e326bba3e5c634ece7c34efcef5065a81700b89f3a702d9d869ef`) |
+| Source Archive (sdist) | `ayentra.tar.gz` | Verified (266,863 bytes / 260.61 KB, SHA-256 `1e7241600059aeb93f3aa2c9140808518a0b1c31af7a545f753aaefe37054c65`) |
 | Wheel Build Latency | `11995.41 ms` | Verified |
 | Isolated Venv Provisioning | `12040.98 ms` | Verified |
 | Clean Wheel Installation | `22396.05 ms` | Verified |
