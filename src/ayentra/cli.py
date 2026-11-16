@@ -225,7 +225,7 @@ def run_init(
         "# Zero AI Slop. Zero Em-Dashes. 100% Deterministic Receipts.\n\n"
         "[project]\n"
         f'name = "{project_name}"\n'
-        'version = "0.1.0"\n'
+        'version = "1.0.0"\n'
         f"target_dirs = {target_dirs_json}\n\n"
         "# Starter Invariant Specification\n"
         "[[invariants]]\n"

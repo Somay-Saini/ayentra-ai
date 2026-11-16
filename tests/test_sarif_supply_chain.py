@@ -122,7 +122,7 @@ def test_ayentra_sarif_to_sarif_schema_structure_and_fixes(tmp_path: Path) -> No
 
     run = sarif_doc["runs"][0]
     assert run["tool"]["driver"]["name"] == "Ayentra"
-    assert run["tool"]["driver"]["version"] == "0.1.0"
+    assert run["tool"]["driver"]["version"] == "1.0.0"
     assert len(run["tool"]["driver"]["rules"]) == 1
     assert run["tool"]["driver"]["rules"][0]["id"] == "AYENTRA001"
 
@@ -239,8 +239,8 @@ def test_site_directories_and_sbom_panel_parity() -> None:
     html = (site_dirs[0] / "index.html").read_text(encoding="utf-8")
     assert 'id="sbom"' in html
     assert "CycloneDX" in html
-    assert "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73" in html
-    assert "2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c" in html
+    assert "ayentra==1.0.0" in html
+    assert "Somay-Saini/ayentra-ai" in html
 
 
 def test_readme_and_release_dossier_link_all_24_docs() -> None:
@@ -311,9 +311,12 @@ def test_wave_11_governance_hash_pinning_and_all_25_shared_docs_parity() -> None
         assert digest in sbom_text, f"SHA-256 digest {digest} for {gov_name} not pinned in sbom_and_provenance_manifest.md"
         assert size_str in sbom_text, f"Byte size {size_str} for {gov_name} not pinned in sbom_and_provenance_manifest.md"
     runbook_text = (docs_dir / "launch_war_room_runbook.md").read_text(encoding="utf-8")
-    assert "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73" in runbook_text
-    assert "2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c" in runbook_text
-    assert "7aa9684b18bb4e0527260eb88c69bd15ee1c556a6f7340de1e12127adcfdb34b" in runbook_text
+    whl_path = repo_root / "dist" / "ayentra-1.0.0-py3-none-any.whl"
+    sdist_path = repo_root / "dist" / "ayentra-1.0.0.tar.gz"
+    whl_sha = hashlib.sha256(whl_path.read_bytes()).hexdigest()
+    sdist_sha = hashlib.sha256(sdist_path.read_bytes()).hexdigest()
+    assert whl_sha in runbook_text
+    assert sdist_sha in runbook_text
 
 def test_wave_12_release_kit_and_roi_calculator_baseline_parity() -> None:
     repo_root = Path(__file__).resolve().parent.parent
@@ -345,18 +348,23 @@ def test_wave_13_airgapped_runner_and_enterprise_security_pack_hash_pinning() ->
     airgap_shared = shared_dir / "ayentra_airgapped_runner_hardening.md"
     assert airgap_local.read_bytes() == airgap_shared.read_bytes()
     airgap_text = airgap_local.read_text(encoding="utf-8")
-    assert "108,791" in airgap_text
-    assert "143,855" in airgap_text
-    assert "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73" in airgap_text
-    assert "2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c" in airgap_text
+    dist_dir = repo_root / "dist"
+    whl_bytes = (dist_dir / "ayentra-1.0.0-py3-none-any.whl").read_bytes()
+    sdist_bytes = (dist_dir / "ayentra-1.0.0.tar.gz").read_bytes()
+    whl_sha = hashlib.sha256(whl_bytes).hexdigest()
+    sdist_sha = hashlib.sha256(sdist_bytes).hexdigest()
+    assert f"{len(whl_bytes):,}" in airgap_text
+    assert f"{len(sdist_bytes):,}" in airgap_text
+    assert whl_sha in airgap_text
+    assert sdist_sha in airgap_text
 
     sec_local = docs_dir / "enterprise_security_pack.md"
     sec_shared = shared_dir / "ayentra_enterprise_security_pack.md"
     assert sec_local.read_bytes() == sec_shared.read_bytes()
     sec_text = sec_local.read_text(encoding="utf-8")
     assert "--require-hashes" in sec_text
-    assert "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73" in sec_text
-    assert "2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c" in sec_text
+    assert whl_sha in sec_text
+    assert sdist_sha in sec_text
 def test_wave_14_launch_kit_chk01_and_code_review_delta_sync() -> None:
     repo_root = Path(__file__).resolve().parent.parent
     docs_dir = repo_root / "docs"
@@ -394,10 +402,15 @@ def test_wave_15_benchmarks_and_repair_matrix_receipt_parity() -> None:
     bm_shared = shared_dir / "ayentra_benchmarks.md"
     assert bm_local.read_bytes() == bm_shared.read_bytes()
     bm_text = bm_local.read_text(encoding="utf-8")
-    assert "108,791 bytes / 106.24 KB" in bm_text
-    assert "143,855 bytes / 140.48 KB" in bm_text
-    assert "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73" in bm_text
-    assert "2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c" in bm_text
+    dist_dir = repo_root / "dist"
+    whl_bytes = (dist_dir / "ayentra-1.0.0-py3-none-any.whl").read_bytes()
+    sdist_bytes = (dist_dir / "ayentra-1.0.0.tar.gz").read_bytes()
+    whl_sha = hashlib.sha256(whl_bytes).hexdigest()
+    sdist_sha = hashlib.sha256(sdist_bytes).hexdigest()
+    assert f"{len(whl_bytes):,} bytes" in bm_text
+    assert f"{len(sdist_bytes):,} bytes" in bm_text
+    assert whl_sha in bm_text
+    assert sdist_sha in bm_text
     assert "128 / 128 tests passing (100.0%: 124 in `tests/` + 4 in `examples/`)" in bm_text
     assert "108 / 108" not in bm_text
 

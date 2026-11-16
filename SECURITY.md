@@ -12,8 +12,8 @@ We provide active security patches, vulnerability triage, and dependency updates
 
 | Version | Supported | Security Patch SLA |
 | :--- | :--- | :--- |
-| `0.1.x` (Current) | Yes | Active maintenance, 7-day critical fix release target |
-| `< 0.1.0` | No | Unsupported; upgrade to 0.1.0 or newer |
+| `1.0.x` (Current) | Yes | Active maintenance, 7-day critical fix release target |
+| `< 1.0.0` | No | Unsupported; upgrade to 1.0.0 or newer |
 
 ---
 
@@ -112,7 +112,7 @@ permissions:
 Always pin external actions and the Ayentra action to full commit SHAs rather than mutable branch names:
 ```yaml
 - name: Run Ayentra Verification Gate
-  uses: ayentra/ayentra-action@c3b4a2e5d6f7890123456789abcdef0123456789
+  uses: Somay-Saini/ayentra-ai@c3b4a2e5d6f7890123456789abcdef0123456789
   with:
     target: 'src'
     seed: 42

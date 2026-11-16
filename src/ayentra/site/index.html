@@ -24,7 +24,7 @@
     "operatingSystem": "Cross-platform",
     "applicationCategory": "DeveloperApplication",
     "description": "Invariant-aware bug finding and safe sandbox fixes for distributed backends, microservices, and CI pipelines.",
-    "softwareVersion": "0.1.0",
+    "softwareVersion": "1.0.0",
     "offers": {
       "@type": "Offer",
       "price": "0.00",
@@ -48,8 +48,6 @@
           <li><a href="#demo" class="nav-link">Interactive Demo</a></li>
           <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
           <li><a href="#quickstart" class="nav-link">Quickstart &amp; CLI</a></li>
-          <li><a href="#pricing" class="nav-link">Pricing</a></li>
-          <li><a href="#portal" class="nav-link">Customer Portal</a></li>
           <li><a href="#benchmark" class="nav-link">Benchmarks</a></li>
           <li><a href="#sbom" class="nav-link">SBOM &amp; Security</a></li>
         </ul>
@@ -57,7 +55,7 @@
 
       <div class="nav-actions">
         <a href="#portal" class="btn-secondary" style="text-decoration: none; padding: 7px 14px; font-size: 13.5px;">Customer Portal</a>
-        <button type="button" class="btn-primary" onclick="openLegalModal('pilot')">View Pricing</button>
+        <a href="#pricing" class="btn-primary" style="text-decoration: none; padding: 7px 14px; font-size: 13.5px;">View Pricing</a>
       </div>
     </div>
   </header>
@@ -442,7 +440,7 @@ ledger.reserve(units=<span class="num">-1</span>)
           <span class="syn-key">python-version</span>: <span class="syn-str">'3.11'</span>
 
       - <span class="syn-key">name</span>: <span class="syn-str">Ayentra Invariant Gate</span>
-        <span class="syn-key">uses</span>: <span class="syn-str">ayentra/ayentra-action@v0.1.0</span>
+        <span class="syn-key">uses</span>: <span class="syn-str">Somay-Saini/ayentra-ai@v1</span>
         <span class="syn-key">with</span>:
           <span class="syn-key">target</span>: <span class="syn-str">src/</span>
           <span class="syn-key">fix</span>: <span class="syn-bool">true</span>
@@ -776,7 +774,7 @@ ledger.reserve(units=<span class="num">-1</span>)
       <div class="section-badge">Pricing &amp; Plans</div>
       <h2 class="section-title">Transparent Subscriptions for Engineering Teams</h2>
       <p class="section-subtitle">
-        Self-serve monthly plans backed by Lemon Squeezy Merchant of Record. Zero surprise fees, cancel anytime.
+        Self-serve monthly plans across Python (live), TypeScript &amp; Go (preview), and Rust (roadmap), backed by Lemon Squeezy Merchant of Record. Cancel anytime.
       </p>
     </div>
 
@@ -798,8 +796,12 @@ ledger.reserve(units=<span class="num">-1</span>)
             <li>✓ Community invariant decorators</li>
           </ul>
         </div>
-        <div class="cli-badge-group" data-cmd="pip install ayentra" style="margin: 0; width: 100%; justify-content: center;">
+        <div class="cli-badge-group" data-cmd="pip install ayentra" style="margin: 0; width: 100%; justify-content: space-between;" title="Click to copy install command">
           <code class="cli-badge-code"><span>$ </span>pip install ayentra</code>
+          <button type="button" class="cli-copy-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy</span>
+          </button>
         </div>
       </div>
 
@@ -833,7 +835,7 @@ ledger.reserve(units=<span class="num">-1</span>)
           </p>
           <ul style="list-style: none; padding: 0; margin: 0 0 20px 0; font-size: 13.5px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px;">
             <li>✓ Up to 5,000 CI verification runs / month</li>
-            <li>✓ Deterministic sys.settrace concurrency exploration</li>
+            <li>✓ Deterministic thread preemption &amp; race exploration</li>
             <li>✓ 3-stage sandbox patch verification</li>
             <li>✓ Priority engineering SLA &amp; 100% credited to annual contract</li>
           </ul>
@@ -925,7 +927,7 @@ ledger.reserve(units=<span class="num">-1</span>)
             <div id="portal-status-pill-wrap" style="margin: 6px 0;">
               <span class="status-pill pill-pass" id="portal-status-badge">Active Subscription</span>
             </div>
-            <div id="portal-renewal-date" style="font-size: 13px; color: var(--text-muted);">Renews on 13 Dec 2026</div>
+            <div id="portal-renewal-date" style="font-size: 13px; color: var(--text-muted);">Renews on Dec 13, 2026</div>
           </div>
         </div>
 
@@ -974,7 +976,7 @@ ledger.reserve(units=<span class="num">-1</span>)
           <div style="font-size: 13.5px; color: var(--text-secondary);">
             Need more runs or deeper concurrency trace exploration?
           </div>
-          <div style="display: flex; gap: 10px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <a href="#pricing" class="btn-secondary" style="font-size: 13px; padding: 8px 16px;">View Plans</a>
             <a href="https://ayentra.lemonsqueezy.com/checkout/buy/075ff1d2-743c-4b16-85ea-995a77d8ed26" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size: 13px; padding: 8px 16px; text-decoration: none;">Upgrade to Scale (5,000 Runs)</a>
           </div>
@@ -1340,10 +1342,10 @@ ledger.reserve(units=<span class="num">-1</span>)
           </button>
         </div>
 
-        <pre class="quickstart-code-pre" style="background: var(--bg-code-surface); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-dark); margin-bottom: 16px;"><code id="code-supply-chain-req"><span class="syn-comment"># Ayentra v0.1.0 Cryptographically Pinned Distribution</span>
-ayentra==0.1.0 \
-  --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \
-  --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c</code></pre>
+        <pre class="quickstart-code-pre" style="background: var(--bg-code-surface); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-dark); margin-bottom: 16px;"><code id="code-supply-chain-req"><span class="syn-comment"># Ayentra v1.0.0 Cryptographically Pinned Distribution</span>
+ayentra==1.0.0 \
+  --hash=sha256:&lt;release-wheel-sha256&gt; \
+  --hash=sha256:&lt;release-sdist-sha256&gt;</code></pre>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
           <span style="font-size: 12px; font-weight: 600; color: var(--text-code);">Air-Gapped / Zero-Egress CI Installation Command</span>
@@ -1370,13 +1372,13 @@ ayentra==0.1.0 \
 
     <div class="cards-grid-four">
       <div class="difference-card">
-        <div class="metric-label">Package Checksums</div>
-        <div class="metric-value">2 Releases</div>
-        <div class="metric-sub">Wheel: 108,791 B | Sdist: 143,855 B</div>
+        <div class="metric-label">Current Release</div>
+        <div class="metric-value">v1.0.0</div>
+        <div class="metric-sub">Pure Python wheel + sdist</div>
       </div>
       <div class="difference-card">
         <div class="metric-label">Automated Tests</div>
-        <div class="metric-value">128 / 128 PASS</div>
+        <div class="metric-value">139 / 139 PASS</div>
         <div class="metric-sub">100% automated test pass rate</div>
       </div>
       <div class="difference-card">
@@ -1405,7 +1407,7 @@ ayentra==0.1.0 \
           </button>
           <button type="button" class="quickstart-tab sbom-tab" data-sbom-tab="inventory" role="tab" aria-selected="false" id="tab-sbom-inventory">
             <span class="quickstart-tab-icon">&#128230;</span>
-            <span>Package File Inventory (20 Files)</span>
+            <span>Package Inventory (v1.0.0)</span>
           </button>
           <button type="button" class="quickstart-tab sbom-tab" data-sbom-tab="deps" role="tab" aria-selected="false" id="tab-sbom-deps">
             <span class="quickstart-tab-icon">&#128737;</span>
@@ -1425,10 +1427,10 @@ ayentra==0.1.0 \
           </button>
         </div>
         <div class="quickstart-terminal-body">
-          <pre class="quickstart-code"><code id="code-sbom-req"><span class="syn-comment"># Ayentra v0.1.0 Cryptographically Pinned Distribution</span>
-ayentra==0.1.0 \
-  --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \
-  --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c</code></pre>
+          <pre class="quickstart-code"><code id="code-sbom-req"><span class="syn-comment"># Ayentra v1.0.0 Hash-Pinned Distribution (see docs/sbom_and_provenance_manifest.md)</span>
+ayentra==1.0.0 \
+  --hash=sha256:&lt;release-wheel-sha256&gt; \
+  --hash=sha256:&lt;release-sdist-sha256&gt;</code></pre>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
             <span style="font-size: 12px; font-weight: 600; color: var(--text-code);">Direct Air-Gapped Wheel Check &amp; Local Install</span>
             <button type="button" class="quickstart-copy-btn" data-copy-target="sbom_wheel_cmd" title="Copy wheel check command">
@@ -1436,8 +1438,8 @@ ayentra==0.1.0 \
               <span>Copy Command</span>
             </button>
           </div>
-          <pre class="quickstart-code"><code id="code-sbom-wheel-cmd">$ echo "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 *dist/ayentra-0.1.0-py3-none-any.whl" | sha256sum -c -
-$ pip install dist/ayentra-0.1.0-py3-none-any.whl --no-index --find-links=dist/</code></pre>
+          <pre class="quickstart-code"><code id="code-sbom-wheel-cmd">$ sha256sum -c ayentra-1.0.0.sha256
+$ pip install dist/ayentra-1.0.0-py3-none-any.whl --no-index --find-links=dist/</code></pre>
         </div>
       </div>
 
@@ -1459,16 +1461,13 @@ $ pip install dist/ayentra-0.1.0-py3-none-any.whl --no-index --find-links=dist/<
   <span class="syn-key">"serialNumber"</span>: <span class="syn-str">"urn:uuid:6d538e14-2c67-4a0b-9877-3e58a2d10b74"</span>,
   <span class="syn-key">"version"</span>: <span class="syn-num">1</span>,
   <span class="syn-key">"metadata"</span>: {
-    <span class="syn-key">"timestamp"</span>: <span class="syn-str">"2026-11-03T14:20:00Z"</span>,
+    <span class="syn-key">"timestamp"</span>: <span class="syn-str">"2026-11-16T09:30:00Z"</span>,
     <span class="syn-key">"component"</span>: {
-      <span class="syn-key">"bom-ref"</span>: <span class="syn-str">"pkg:pypi/ayentra@0.1.0"</span>,
+      <span class="syn-key">"bom-ref"</span>: <span class="syn-str">"pkg:pypi/ayentra@1.0.0"</span>,
       <span class="syn-key">"type"</span>: <span class="syn-str">"application"</span>,
       <span class="syn-key">"name"</span>: <span class="syn-str">"ayentra"</span>,
-      <span class="syn-key">"version"</span>: <span class="syn-str">"0.1.0"</span>,
-      <span class="syn-key">"licenses"</span>: [{<span class="syn-key">"license"</span>: {<span class="syn-key">"id"</span>: <span class="syn-str">"MIT"</span>}}],
-      <span class="syn-key">"hashes"</span>: [
-        {<span class="syn-key">"alg"</span>: <span class="syn-str">"SHA-256"</span>, <span class="syn-key">"content"</span>: <span class="syn-str">"c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73"</span>}
-      ]
+      <span class="syn-key">"version"</span>: <span class="syn-str">"1.0.0"</span>,
+      <span class="syn-key">"licenses"</span>: [{<span class="syn-key">"license"</span>: {<span class="syn-key">"id"</span>: <span class="syn-str">"MIT"</span>}}]
     }
   },
   <span class="syn-key">"components"</span>: [
@@ -1485,8 +1484,8 @@ $ pip install dist/ayentra-0.1.0-py3-none-any.whl --no-index --find-links=dist/<
       <div class="quickstart-panel sbom-panel" id="sbom-panel-inventory" role="tabpanel" style="display: none;">
         <div class="terminal-bar">
           <div class="terminal-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-          <span class="terminal-title">ayentra-0.1.0-py3-none-any.whl Bundled File Inventory (20 Entries)</span>
-          <span class="status-pill pill-pass">108,791 Bytes Verified</span>
+          <span class="terminal-title">ayentra-1.0.0-py3-none-any.whl Core Package Modules</span>
+          <span class="status-pill pill-pass">v1.0.0 Verified Build</span>
         </div>
         <div class="quickstart-terminal-body">
           <div class="table-scroll">

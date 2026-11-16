@@ -2,14 +2,14 @@
 
 ## 1. Executive Mission, Scope, and Launch Architecture
 
-This runbook governs the operational execution of the Ayentra v0.1.0 public launch. It covers the 3-hour pre-launch countdown (T-180m to T-0), the public release window, and the 72-hour post-launch monitoring and incident mitigation protocol.
+This runbook governs the operational execution of the Ayentra v1.0.0 public launch. It covers the 3-hour pre-launch countdown (T-180m to T-0), the public release window, and the 72-hour post-launch monitoring and incident mitigation protocol.
 
 ### Core Release Artifacts and Endpoints
 1. **PyPI Distribution Package**:
-   - Wheel: `dist/ayentra-0.1.0-py3-none-any.whl` (SHA-256: `c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73`)
-   - Source Distribution: `dist/ayentra-0.1.0.tar.gz` (SHA-256: `2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c`)
+   - Wheel: `dist/ayentra-1.0.0-py3-none-any.whl` (SHA-256: `aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67`)
+   - Source Distribution: `dist/ayentra-1.0.0.tar.gz` (SHA-256: `4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574`)
 2. **GitHub Composite Action**:
-   - Location: `action.yml` (Tagged: `v0.1.0` and `v1`)
+   - Location: `action.yml` (Tagged: `v1.0.0` and `v1`)
    - Functionality: Pre-merge verification gate running property tests, shrinking, SARIF 2.1.0 generation, and PR review comments.
 3. **Showcase Landing Page and Interactive Studio**:
    - Live URL: `https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site`
@@ -44,7 +44,7 @@ This runbook governs the operational execution of the Ayentra v0.1.0 public laun
 - **T-150m (11:00 UTC)**: Repair-Lead performs clean virtualenv wheel smoke test:
   ```bash
   python -m venv test_env
-  ./test_env/bin/pip install dist/ayentra-0.1.0-py3-none-any.whl
+  ./test_env/bin/pip install dist/ayentra-1.0.0-py3-none-any.whl
   ./test_env/bin/ayentra --version
   ./test_env/bin/ayentra check examples/customer_pilot.py --sarif test.sarif
   ```
@@ -82,13 +82,13 @@ This runbook governs the operational execution of the Ayentra v0.1.0 public laun
   - Incident Commander (CEO): Final GO to publish
 - **T-30m (13:00 UTC)**: Publish release to PyPI and push Git tag:
   ```bash
-  git tag -a v0.1.0 -m "Release v0.1.0: Ayentra Invariant Verification Gate"
-  git push origin v0.1.0
+  git tag -a v1.0.0 -m "Release v1.0.0: Ayentra Invariant Verification Gate"
+  git push origin v1.0.0
   twine upload dist/ayentra-0.1.0*
   ```
 - **T-15m (13:15 UTC)**: Tag composite action:
   ```bash
-  git tag -fa v1 -m "Update v1 action pointer to v0.1.0"
+  git tag -fa v1 -m "Update v1 action pointer to v1.0.0"
   git push origin v1 --force
   ```
 - **T-0m (13:30 UTC)**: Public Announcement broadcast:
@@ -167,7 +167,7 @@ pytest tests/ examples/ -v --tb=short
 # Verify wheel installation and CLI execution in an isolated virtual environment
 python -m venv .smoke_venv
 .smoke_venv/bin/pip install --upgrade pip
-.smoke_venv/bin/pip install dist/ayentra-0.1.0-py3-none-any.whl
+.smoke_venv/bin/pip install dist/ayentra-1.0.0-py3-none-any.whl
 .smoke_venv/bin/ayentra --version
 .smoke_venv/bin/ayentra --help
 ```

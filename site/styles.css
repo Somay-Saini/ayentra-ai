@@ -1686,7 +1686,19 @@ footer {
   }
 
   .nav-actions {
-    display: none;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .nav-actions .btn-secondary,
+  .nav-actions .btn-primary {
+    padding: 6px 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  #portal-license-input {
+    min-width: 0 !important;
+    width: 100%;
   }
 
   .demo-action-group .btn-secondary,

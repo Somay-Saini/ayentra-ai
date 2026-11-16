@@ -19,7 +19,7 @@ from ayentra.report import VerificationReport, build_verification_report
 from ayentra.sarif import build_sarif_report, to_sarif
 from ayentra.studio import StudioHandler, create_studio_server, execute_full_check, run_studio_server
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 __all__ = [
     "ASTAnalysisResult",

@@ -197,13 +197,13 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install Ayentra Gate (Hash-Pinned v0.1.0)
+      - name: Install Ayentra Gate (Hash-Pinned v1.0.0)
         run: |
           python -m pip install --upgrade pip
           python -m pip install --require-hashes -r - << 'EOF'
-          ayentra==0.1.0 \
-            --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \
-            --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c
+          ayentra==1.0.0 \
+            --hash=sha256:aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67 \
+            --hash=sha256:4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574
           EOF
 
       - name: Execute Offline Verification Gate

@@ -322,7 +322,7 @@ def test_customer_pilot_high_concurrency_race_under_barrier_delay() -> None:
 def test_standalone_wheel_package_contents_and_static_assets(tmp_path: Path) -> None:
     import zipfile
 
-    whl_path = Path(r"C:\Users\Somay\Desktop\idea1\dist\ayentra-0.1.0-py3-none-any.whl")
+    whl_path = Path(r"C:\Users\Somay\Desktop\idea1\dist\ayentra-1.0.0-py3-none-any.whl")
     assert whl_path.is_file(), "Built standalone wheel must exist in dist/"
     assert whl_path.stat().st_size > 10000, "Wheel archive size should be substantial"
 
@@ -351,10 +351,10 @@ def test_standalone_wheel_package_contents_and_static_assets(tmp_path: Path) -> 
         for asset in required_assets:
             assert asset in names, f"Required static asset {asset} missing from wheel package"
 
-        assert "ayentra-0.1.0.dist-info/METADATA" in names
-        assert "ayentra-0.1.0.dist-info/entry_points.txt" in names
+        assert "ayentra-1.0.0.dist-info/METADATA" in names
+        assert "ayentra-1.0.0.dist-info/entry_points.txt" in names
 
-        entry_points = z.read("ayentra-0.1.0.dist-info/entry_points.txt").decode("utf-8")
+        entry_points = z.read("ayentra-1.0.0.dist-info/entry_points.txt").decode("utf-8")
         assert "ayentra = ayentra.cli:main" in entry_points
 
         html_bytes = z.read("ayentra/site/index.html")

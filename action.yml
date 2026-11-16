@@ -1,4 +1,4 @@
-name: 'Ayentra Invariant Verification Gate'
+name: 'Ayentra AI'
 description: 'Catches concurrency race conditions and logic invariant violations with property-based shrinking and sandbox auto-patch verification.'
 author: 'Ayentra'
 

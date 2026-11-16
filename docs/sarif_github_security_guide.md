@@ -1,7 +1,7 @@
 # Ayentra SARIF 2.1.0 & Supply-Chain Integrity Verification Guide
 
 **Classification:** Enterprise AppSec & CI/CD Hardening Guide  
-**Release Version:** Ayentra v0.1.0  
+**Release Version:** Ayentra v1.0.0  
 **Effective Date:** 2026-11-03  
 **Compatibility:** GitHub Advanced Security (GHAS), GitLab Security Dashboard, Air-Gapped / Zero-Egress CI Runners  
 
@@ -11,12 +11,12 @@
 
 Ayentra adheres to SLSA-compatible build provenance standards. All release wheels and source distributions are cryptographically fingerprinted to enable hermetic, hash-pinned installations in high-security enterprise environments.
 
-### 1.1 Release Artifact Digests (v0.1.0)
+### 1.1 Release Artifact Digests (v1.0.0)
 
 | Distribution File | Size (Bytes) | SHA-256 Cryptographic Checksum |
 | :--- | :--- | :--- |
-| `ayentra-0.1.0-py3-none-any.whl` | 108,791 | `c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73` |
-| `ayentra-0.1.0.tar.gz` | 143,855 | `2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c` |
+| `ayentra-1.0.0-py3-none-any.whl` | 220,944 | `aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67` |
+| `ayentra-1.0.0.tar.gz` | 266,852 | `4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574` |
 
 ### 1.2 Hash-Pinned Enterprise Installation Snippet
 
@@ -24,10 +24,10 @@ In zero-trust or air-gapped CI runner environments where external package indice
 
 #### Option A: Requirements File with Hashes (`requirements-security.txt`)
 ```txt
-# Ayentra v0.1.0 Cryptographically Pinned Distribution
-ayentra==0.1.0 \
-    --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \
-    --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c
+# Ayentra v1.0.0 Cryptographically Pinned Distribution
+ayentra==1.0.0 \
+    --hash=sha256:aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67 \
+    --hash=sha256:4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574
 ```
 
 Install command in runner:
@@ -39,8 +39,8 @@ pip install --require-hashes -r requirements-security.txt
 If caching distribution wheels directly within an enterprise repository or artifact cache:
 ```bash
 # Verify wheel hash before execution
-echo "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 *dist/ayentra-0.1.0-py3-none-any.whl" | sha256sum -c -
-pip install dist/ayentra-0.1.0-py3-none-any.whl --no-index --find-links=dist/
+echo "aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67 *dist/ayentra-1.0.0-py3-none-any.whl" | sha256sum -c -
+pip install dist/ayentra-1.0.0-py3-none-any.whl --no-index --find-links=dist/
 ```
 
 ---
@@ -75,7 +75,7 @@ When running `ayentra check src/ --sarif ayentra.sarif`, Ayentra outputs valid S
       "tool": {
         "driver": {
           "name": "Ayentra",
-          "version": "0.1.0",
+          "version": "1.0.0",
           "informationUri": "https://github.com/ayentra/ayentra",
           "rules": [
             {
@@ -191,7 +191,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --require-hashes -r - << 'EOF'
-          ayentra==0.1.0               --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73               --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c
+          ayentra==1.0.0               --hash=sha256:aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67               --hash=sha256:4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574
           EOF
 
       - name: Run Ayentra Verification Gate
@@ -277,7 +277,7 @@ ayentra_gate:
     - pip install --upgrade pip
     - |
       pip install --require-hashes -r - << 'EOF'
-      ayentra==0.1.0           --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73           --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c
+      ayentra==1.0.0           --hash=sha256:aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67           --hash=sha256:4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574
       EOF
   script:
     - ayentra check src/ --seed 42 --max-examples 120 --sarif ayentra.sarif --json-out ayentra-receipt.json
@@ -295,8 +295,8 @@ ayentra_gate:
 
 ## 6. Audit & Verification Summary
 
-- **Package Version:** `ayentra==0.1.0`
-- **Wheel SHA-256:** `c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73`
-- **Source Archive SHA-256:** `2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c`
+- **Package Version:** `ayentra==1.0.0`
+- **Wheel SHA-256:** `aa5a5759ea09c74ab84150026eb00f38584416ce525cf76974e37ee8f43bbd67`
+- **Source Archive SHA-256:** `4804a95cca8206d7f505baf417fb81a8bce7596d16a55df73f5eb368ab5c7574`
 - **Standard Conformance:** OASIS SARIF 2.1.0 / GitHub Advanced Security Schema
 - **Air-Gap Capability:** 100% offline execution; zero external network egress required.

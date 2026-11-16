@@ -319,6 +319,16 @@ function setupListeners() {
       copyToClipboard(cmd, "Command copied to clipboard");
     });
   });
+
+  const portalInput = document.getElementById("portal-license-input");
+  if (portalInput) {
+    portalInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        checkLicenseBalance();
+      }
+    });
+  }
 }
 
 function switchDemoView(mode) {
@@ -700,8 +710,8 @@ function generateSarifForScenario(data) {
         "tool": {
           "driver": {
             "name": "Ayentra",
-            "version": "0.1.0",
-            "informationUri": "https://github.com/ayentra/ayentra",
+            "version": "1.0.0",
+            "informationUri": "https://github.com/Somay-Saini/ayentra-ai",
             "rules": [
               {
                 "id": "AYENTRA001",
@@ -881,13 +891,13 @@ window.switchDemoTarget = switchDemoTarget;
 
 // --- Quickstart, CLI, and SBOM Snippets & Tab Switching ---
 const QUICKSTART_SNIPPETS = {
-  sbom_req: `# Ayentra v0.1.0 Cryptographically Pinned Distribution
-ayentra==0.1.0 \\
-    --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \\
-    --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c
+  sbom_req: `# Ayentra v1.0.0 Cryptographically Pinned Distribution
+ayentra==1.0.0 \\
+    --hash=sha256:<release-wheel-sha256> \\
+    --hash=sha256:<release-sdist-sha256>
 `,
   sbom_cmd: `pip install --require-hashes -r requirements-security.txt`,
-  sbom_wheel_cmd: `echo "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 *dist/ayentra-0.1.0-py3-none-any.whl" | sha256sum -c - && pip install dist/ayentra-0.1.0-py3-none-any.whl --no-index --find-links=dist/`,
+  sbom_wheel_cmd: `sha256sum -c ayentra-1.0.0.sha256 && pip install dist/ayentra-1.0.0-py3-none-any.whl --no-index --find-links=dist/`,
   sbom_cyclonedx_json: `{
   "$schema": "http://cyclonedx.org/schema/bom-1.5.json",
   "bomFormat": "CycloneDX",
@@ -895,16 +905,13 @@ ayentra==0.1.0 \\
   "serialNumber": "urn:uuid:6d538e14-2c67-4a0b-9877-3e58a2d10b74",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-03T14:20:00Z",
+    "timestamp": "2026-11-16T09:30:00Z",
     "component": {
-      "bom-ref": "pkg:pypi/ayentra@0.1.0",
+      "bom-ref": "pkg:pypi/ayentra@1.0.0",
       "type": "application",
       "name": "ayentra",
-      "version": "0.1.0",
-      "licenses": [{"license": {"id": "MIT"}}],
-      "hashes": [
-        {"alg": "SHA-256", "content": "c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73"}
-      ]
+      "version": "1.0.0",
+      "licenses": [{"license": {"id": "MIT"}}]
     }
   },
   "components": [
@@ -914,10 +921,10 @@ ayentra==0.1.0 \\
     {"name": "sortedcontainers", "version": "2.4.0", "scope": "required", "licenses": [{"license": {"id": "Apache-2.0"}}]}
   ]
 }`,
-  supply_chain_req: `# Ayentra v0.1.0 Cryptographically Pinned Distribution
-ayentra==0.1.0 \\
-    --hash=sha256:c6e91a15798e0c419c91a6657fd92e901865ed219dc0a0409271723e733a7e73 \\
-    --hash=sha256:2c72fdf4719f51c28e87b96808ff8e9b30c9310842316611d9ae58ac0b65de0c
+  supply_chain_req: `# Ayentra v1.0.0 Cryptographically Pinned Distribution
+ayentra==1.0.0 \\
+    --hash=sha256:<release-wheel-sha256> \\
+    --hash=sha256:<release-sdist-sha256>
 `,
   supply_chain_cmd: `pip install --require-hashes -r requirements-security.txt`,
   workflow: `name: Invariant Verification Gate
@@ -941,7 +948,7 @@ jobs:
           python-version: '3.11'
 
       - name: Ayentra Invariant Gate
-        uses: ayentra/ayentra-action@v0.1.0
+        uses: Somay-Saini/ayentra-ai@v1
         with:
           target: src/
           fix: true
@@ -1126,7 +1133,7 @@ const MODAL_CONTENT = {
       <h4>Production Backend Invariant Verification</h4>
       <p style="margin-bottom: 14px;">Continuous invariant verification and deterministic sandbox repair across Python, TypeScript, Go, and Rust.</p>
       
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 16px;">
         <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-default); display: flex; flex-direction: column; justify-content: space-between;">
           <div>
             <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--accent-terracotta); letter-spacing: 0.05em;">Team Tier</div>
@@ -1313,6 +1320,15 @@ async function checkLicenseBalance() {
 
       const progressBar = document.getElementById("portal-progress-bar");
       if (progressBar) progressBar.style.width = `${pct}%`;
+
+      const totalRunsLabel = document.getElementById("portal-total-runs-label");
+      if (totalRunsLabel) totalRunsLabel.textContent = `${total.toLocaleString()} Total Monthly Runs`;
+
+      const renewalEl = document.getElementById("portal-renewal-date");
+      if (renewalEl) renewalEl.textContent = "Renews on Dec 13, 2026";
+
+      const statusBadge = document.getElementById("portal-status-badge");
+      if (statusBadge) statusBadge.textContent = "Active Subscription";
 
       if (alertBox) alertBox.style.display = "none";
     } else {

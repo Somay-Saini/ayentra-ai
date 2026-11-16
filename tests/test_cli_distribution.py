@@ -264,7 +264,7 @@ def test_check_sarif_export_file_and_schema(tmp_path: Path) -> None:
 
     driver = data["runs"][0]["tool"]["driver"]
     assert driver["name"] == "Ayentra"
-    assert driver["version"] == "0.1.0"
+    assert driver["version"] == "1.0.0"
     assert len(driver["rules"]) >= 1
     assert driver["rules"][0]["id"] == "AYENTRA001"
 
@@ -1501,7 +1501,7 @@ def test_production_distribution_artifacts_and_metadata() -> None:
     assert f'version = "{__version__}"' in pyproject_text
     assert "description = " in pyproject_text
     assert "classifiers = [" in pyproject_text
-    assert '"Development Status :: 4 - Beta"' in pyproject_text
+    assert '"Development Status :: 5 - Production/Stable"' in pyproject_text
     assert '"Programming Language :: Python :: 3"' in pyproject_text
     assert "[project.urls]" in pyproject_text
     assert "Homepage = " in pyproject_text

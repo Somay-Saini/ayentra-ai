@@ -1,14 +1,15 @@
 # Ayentra: Invariant-Aware Verification Gate
 
-Ayentra checks whether your Python code violates explicitly defined behavioral invariants, finds minimal reproducible counterexamples using property-based shrinking and deterministic thread interleaving, and verifies candidate fixes in an isolated sandbox against both the invariant and your existing `pytest` regression suite before merge.
+Ayentra checks whether backend code violates explicitly defined behavioral invariants, finds minimal reproducible counterexamples using property-based shrinking and deterministic thread interleaving, and verifies candidate fixes in an isolated sandbox against both the invariant and your existing regression suite before merge (Python reference engine live, Go and TypeScript adapters in preview, Rust on roadmap).
 
-[![Live Showcase](https://img.shields.io/badge/Live_Showcase-ayentra.openbot.site-0F766E?style=flat-square)](https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site)
-[![Verification Engine](https://img.shields.io/badge/Verification_Gate-Invariant--Aware-1E232A?style=flat-square)](https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site#demo)
+[![Live Showcase](https://img.shields.io/badge/Live_Showcase-ayentra--ai.vercel.app-0F766E?style=flat-square)](https://ayentra-ai.vercel.app/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Somay--Saini%2Fayentra--ai-1E232A?style=flat-square)](https://github.com/Somay-Saini/ayentra-ai)
 [![Enterprise Pilot](https://img.shields.io/badge/Enterprise_Pilot-docs%2Fdesign__partner__kit.md-2563EB?style=flat-square)](docs/design_partner_kit.md)
 [![Security Policy](https://img.shields.io/badge/Security_Policy-SECURITY.md-166534?style=flat-square)](SECURITY.md)
 
-- **Live Public Showcase**: [https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site](https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site)
-- **Interactive Verification Studio**: [Live Invariant Inspector & PR Bot Simulator](https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site#demo)
+- **Live Public Showcase**: [https://ayentra-ai.vercel.app/](https://ayentra-ai.vercel.app/)
+- **Interactive Verification Studio**: [Live Invariant Inspector & PR Bot Simulator](https://ayentra-ai.vercel.app/#demo)
+- **GitHub Repository**: [https://github.com/Somay-Saini/ayentra-ai](https://github.com/Somay-Saini/ayentra-ai)
 - **Enterprise Design Partner Pilot Guide**: [docs/design_partner_kit.md](docs/design_partner_kit.md)
 - **Design Partner Executive ROI & CI Time-Saved Calculator**: [docs/design_partner_roi_calculator.md](docs/design_partner_roi_calculator.md)
 
@@ -159,7 +160,7 @@ Ayentra was verified against 7 real-world architectural patterns spanning financ
 
 **Summary**: 7 production targets scanned, 173 adversarial property cases evaluated, 7 invariant violations detected, and 7 candidate AST repairs verified through all 3 sandbox gates (replay, sweep, and pytest) with zero regressions.
 
-Explore the interactive metrics directly on the [Live Public Showcase](https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site#dogfood).
+Explore the interactive metrics directly on the [Live Public Showcase](https://ayentra-ai.vercel.app/#dogfood).
 
 ## Quickstart
 
@@ -187,8 +188,8 @@ ayentra studio --port 8420
 
 ### Live Showcase & Demonstrations
 
-- **Live Web Showcase**: [https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site](https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site)
-- **Interactive Verification Demo**: [Ayentra Studio & PR Review Bot Simulator](https://ayentra-self-healing-ci-gate-for-python-ayentra-gekf76yujn.openbot.site#demo)
+- **Live Web Showcase**: [https://ayentra-ai.vercel.app/](https://ayentra-ai.vercel.app/)
+- **Interactive Verification Demo**: [Ayentra Studio & PR Review Bot Simulator](https://ayentra-ai.vercel.app/#demo)
 - **Production Wheel & Smoke Test Benchmarks**: [docs/benchmarks.md](docs/benchmarks.md)
 - **Real-World Repair Benchmark & Latency Matrix**: [docs/repair_benchmark_matrix.md](docs/repair_benchmark_matrix.md)
 - **Open-Source Trojan Horse Invariant Audit Pack**: [docs/oss_trojan_horse_audits.md](docs/oss_trojan_horse_audits.md)
