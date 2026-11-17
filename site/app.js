@@ -1140,7 +1140,7 @@ const MODAL_CONTENT = {
             <div style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">$249 <span style="font-size: 13px; font-weight: 400; color: var(--text-muted);">/ month</span></div>
             <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">Automated CI verification and property shrinking for backend engineering teams. 1,000 monthly test runs and SARIF security exports.</p>
           </div>
-          <a href="https://ayentra.lemonsqueezy.com/checkout/buy/a58ed229-19a0-4023-b0ac-09b5d89fc511" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-align: center; justify-content: center; text-decoration: none; padding: 10px 14px; font-size: 13px;">Get Ayentra Team</a>
+          <a href="https://checkout.dodopayments.com/buy/pdt_0Ns9vLO8QFVKioO3V3aCs?quantity=1" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-align: center; justify-content: center; text-decoration: none; padding: 10px 14px; font-size: 13px;">Get Ayentra Team</a>
         </div>
 
         <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-sm); border: 2px solid var(--accent-terracotta); display: flex; flex-direction: column; justify-content: space-between;">
@@ -1150,14 +1150,14 @@ const MODAL_CONTENT = {
             <div style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">$999 <span style="font-size: 13px; font-weight: 400; color: var(--text-muted);">/ month</span></div>
             <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">Deep concurrency race detection and isolated sandbox repair. 5,000 monthly test runs and priority engineering support.</p>
           </div>
-          <a href="https://ayentra.lemonsqueezy.com/checkout/buy/075ff1d2-743c-4b16-85ea-995a77d8ed26" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-align: center; justify-content: center; text-decoration: none; padding: 10px 14px; font-size: 13px;">Get Ayentra Scale</a>
+          <a href="https://checkout.dodopayments.com/buy/pdt_0Ns9wdJ98Rlp3q5sZ34ub?quantity=1" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-align: center; justify-content: center; text-decoration: none; padding: 10px 14px; font-size: 13px;">Get Ayentra Scale</a>
         </div>
       </div>
 
       <div style="background: var(--bg-surface); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-default); margin-bottom: 12px;">
         <p style="font-size: 13px; color: var(--text-secondary); margin: 0;"><strong>Enterprise Tier ($2,500 to $5,000/mo):</strong> Unlimited self-hosted runners, custom AST guard templates, and SLA. Contact us at <a href="mailto:ayentra.ai@gmail.com" style="color: var(--accent-terracotta); font-weight: 700;">ayentra.ai@gmail.com</a>.</p>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Payments processed securely via Lemon Squeezy. Zero hidden fees, cancel anytime.</p>
+      <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Payments processed securely via Dodo Payments. Zero hidden fees, cancel anytime.</p>
     `
   }
 };
