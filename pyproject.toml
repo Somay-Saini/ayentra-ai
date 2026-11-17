@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ayentra"
-version = "1.0.0"
+version = "1.0.1"
 description = "Invariant-aware verification gate with property-based shrinking, deterministic concurrency checks, and sandbox patch verification."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [
-    { name = "Ayentra", email = "support@ayentra.dev" }
+    { name = "Ayentra", email = "ayentra.ai@gmail.com" }
 ]
 keywords = [
     "verification",

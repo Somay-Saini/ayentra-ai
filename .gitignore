@@ -38,3 +38,6 @@ htmlcov/
 # Local / OS
 .DS_Store
 *.log
+
+# Internal strategy & governance docs (keep local only, never public)
+docs/

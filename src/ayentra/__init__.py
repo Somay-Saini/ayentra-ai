@@ -1,6 +1,13 @@
 from __future__ import annotations
 
 from ayentra.ast_analyzer import ASTAnalysisResult, CandidateSuggestion, analyze_source
+from ayentra.cloud import (
+    UPGRADE_URL,
+    is_gating_enforced,
+    load_credentials,
+    resolve_credentials,
+    save_credentials,
+)
 from ayentra.contracts import (
     InvariantSpec,
     SecurityPrincipal,
@@ -19,7 +26,7 @@ from ayentra.report import VerificationReport, build_verification_report
 from ayentra.sarif import build_sarif_report, to_sarif
 from ayentra.studio import StudioHandler, create_studio_server, execute_full_check, run_studio_server
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 __all__ = [
     "ASTAnalysisResult",
@@ -48,4 +55,9 @@ __all__ = [
     "transition_invariant",
     "build_sarif_report",
     "to_sarif",
+    "resolve_credentials",
+    "load_credentials",
+    "save_credentials",
+    "is_gating_enforced",
+    "UPGRADE_URL",
 ]

@@ -261,7 +261,7 @@ def test_readme_and_release_dossier_link_all_24_docs() -> None:
     assert dossier_text == shared_dossier.read_text(encoding="utf-8")
 
     for doc in doc_files:
-        assert doc.name in readme_text, f"{doc.name} not linked in README.md"
+        assert "docs/" not in readme_text, "Internal docs/ must not be linked in public README.md"
         assert doc.name in dossier_text, f"{doc.name} not linked in release_go_no_go_dossier.md"
 
 def test_wave_9_taste_report_and_code_review_signoff_parity() -> None:
@@ -290,7 +290,7 @@ def test_wave_9_taste_report_and_code_review_signoff_parity() -> None:
     dossier_text = (docs_dir / "release_go_no_go_dossier.md").read_text(encoding="utf-8")
 
     for doc in doc_files:
-        assert doc.name in readme_text, f"{doc.name} missing from README.md"
+        assert "docs/" not in readme_text, "Internal docs/ must not be linked in public README.md"
         assert doc.name in dossier_text, f"{doc.name} missing from release_go_no_go_dossier.md"
 
 def test_wave_11_governance_hash_pinning_and_all_25_shared_docs_parity() -> None:

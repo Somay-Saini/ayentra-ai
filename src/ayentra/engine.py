@@ -154,6 +154,13 @@ def run_verification_engine(
     seed_val: int = 42,
     max_examples: int = 120,
 ) -> EngineCheckResult:
+    from ayentra.cloud import is_gating_enforced, resolve_credentials
+
+    effective_max_examples = max_examples
+    if is_gating_enforced() and not resolve_credentials():
+        if effective_max_examples > 120:
+            effective_max_examples = 120
+
     t0 = time.perf_counter()
     path = Path(filepath).resolve()
     ast_res = analyze_source(path)
@@ -221,6 +228,11 @@ def run_verification_engine(
         if inspect.isclass(obj):
             conc_specs = [s for s in resolved_specs if s.check_concurrency]
             if conc_specs:
+                if is_gating_enforced() and not resolve_credentials():
+                    raise PermissionError(
+                        "Multi-Worker Concurrency Race Scheduler requires an active Ayentra Scale ($999/mo) or Enterprise license key. "
+                        "Upgrade at https://ayentra-ai.vercel.app/#pricing"
+                    )
                 c_viol, c_count = explore_interleavings(obj, conc_specs, seed_val=seed_val)
                 total_cases += c_count
                 if c_viol is not None:
@@ -228,7 +240,7 @@ def run_verification_engine(
                     continue
 
             c_viol_prop, cases, bounds_desc = _check_class_properties(
-                obj, resolved_specs, resolved_transitions, seed_val=seed_val, max_examples=max_examples
+                obj, resolved_specs, resolved_transitions, seed_val=seed_val, max_examples=effective_max_examples
             )
             total_cases += cases
             domain_summary[obj.__qualname__] = bounds_desc
@@ -237,7 +249,7 @@ def run_verification_engine(
 
         elif inspect.isfunction(obj) or inspect.iscoroutinefunction(obj):
             f_viol, cases, bounds_desc = _check_function_properties(
-                obj, resolved_specs, resolved_transitions, seed_val=seed_val, max_examples=max_examples
+                obj, resolved_specs, resolved_transitions, seed_val=seed_val, max_examples=effective_max_examples
             )
             total_cases += cases
             domain_summary[obj.__qualname__] = bounds_desc

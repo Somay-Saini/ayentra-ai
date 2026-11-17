@@ -22,7 +22,7 @@ We provide active security patches, vulnerability triage, and dependency updates
 We welcome security reports from researchers, customers, and the open-source community. If you discover a vulnerability in Ayentra, report it through our responsible disclosure channels rather than filing a public issue.
 
 ### 2.1 Disclosure Channels
-- **Email:** `security@ayentra.dev`
+- **Email:** `ayentra.ai@gmail.com`
 - **PGP Key Fingerprint:** `4A7E 9B21 C3F8 8104 E520 7D92 A62B F130 94F5 190E`
 - **GitHub Private Vulnerability Reporting:** Available on the official repository under the `Security` tab (`Report a vulnerability`).
 

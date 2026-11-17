@@ -1458,13 +1458,14 @@ def test_dogfood_cli_individual_targets_sweep(tmp_path: Path) -> None:
 
 
 def test_version_cli_subcommand_and_flags(capsys: pytest.CaptureFixture[str]) -> None:
-    from ayentra import __version__
-
-    # 1. Test 'ayentra version' subcommand
+    # 1. Test 'ayentra version' subcommand (Strict Zero Public Version Law)
     rc = main(["version"])
     assert rc == 0
     captured = capsys.readouterr()
-    assert f"ayentra {__version__}" in captured.out
+    assert "ayentra" in captured.out
+    assert "1.0.0" not in captured.out
+    assert "v1.0.0" not in captured.out
+    assert "v0.1.0" not in captured.out
     assert chr(0x2014) not in captured.out and chr(0x2013) not in captured.out
 
     # 2. Test 'ayentra --version' flag
@@ -1472,16 +1473,24 @@ def test_version_cli_subcommand_and_flags(capsys: pytest.CaptureFixture[str]) ->
         main(["--version"])
     assert exc_info_long.value.code == 0
     captured_long = capsys.readouterr()
-    assert f"ayentra {__version__}" in captured_long.out or f"ayentra {__version__}" in captured_long.err
-    assert chr(0x2014) not in captured_long.out and chr(0x2013) not in captured_long.out
+    out_long = captured_long.out or captured_long.err
+    assert "ayentra" in out_long
+    assert "1.0.0" not in out_long
+    assert "v1.0.0" not in out_long
+    assert "v0.1.0" not in out_long
+    assert chr(0x2014) not in out_long and chr(0x2013) not in out_long
 
     # 3. Test 'ayentra -v' flag
     with pytest.raises(SystemExit) as exc_info_short:
         main(["-v"])
     assert exc_info_short.value.code == 0
     captured_short = capsys.readouterr()
-    assert f"ayentra {__version__}" in captured_short.out or f"ayentra {__version__}" in captured_short.err
-    assert chr(0x2014) not in captured_short.out and chr(0x2013) not in captured_short.out
+    out_short = captured_short.out or captured_short.err
+    assert "ayentra" in out_short
+    assert "1.0.0" not in out_short
+    assert "v1.0.0" not in out_short
+    assert "v0.1.0" not in out_short
+    assert chr(0x2014) not in out_short and chr(0x2013) not in out_short
 
 
 def test_production_distribution_artifacts_and_metadata() -> None:

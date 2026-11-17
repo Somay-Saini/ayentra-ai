@@ -57,6 +57,12 @@ def generate_and_verify_patch(
         candidate_source = hook_fn(original_source, violation)
         strategy_name = "Pluggable Repair Hook + Sandbox Gate"
     else:
+        from ayentra.cloud import is_gating_enforced, resolve_credentials
+        if is_gating_enforced() and not resolve_credentials():
+            raise PermissionError(
+                "Autonomous 3-Gate AST Auto-Repair Synthesizer requires an active Ayentra Scale ($999/mo) or Enterprise license key. "
+                "Upgrade at https://ayentra-ai.vercel.app/#pricing"
+            )
         candidate_source, strategy_name = _synthesize_deterministic_patch(original_source, violation)
 
     return verify_candidate_source(

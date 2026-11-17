@@ -39,6 +39,10 @@ inputs:
     description: 'Whether to post or update the PR review comment in GitHub pull request workflows'
     required: false
     default: 'false'
+  api-key:
+    description: 'Ayentra API Key or License Key (from secrets.AYENTRA_API_KEY)'
+    required: false
+    default: ''
   python-version:
     description: 'Python version to use'
     required: false
@@ -80,8 +84,12 @@ runs:
         PR_COMMENT_OUT: ${{ inputs.pr-comment-out }}
         POST_PR_COMMENT: ${{ inputs.post-pr-comment }}
         STEP_SUMMARY: ${{ inputs.step-summary }}
+        AYENTRA_API_KEY: ${{ inputs.api-key || env.AYENTRA_API_KEY }}
       run: |
         args=("check" "$TARGET" "--seed" "$SEED" "--max-examples" "$MAX_EXAMPLES" "--json-out" "$JSON_OUT")
+        if [ -n "$AYENTRA_API_KEY" ]; then
+          args+=("--api-key" "$AYENTRA_API_KEY")
+        fi
         if [ -n "$SARIF_OUT" ]; then
           args+=("--sarif" "$SARIF_OUT")
         fi

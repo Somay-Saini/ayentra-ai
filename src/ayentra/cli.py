@@ -19,6 +19,15 @@ from rich.syntax import Syntax
 from rich.table import Table
 
 from ayentra.ast_analyzer import analyze_source
+from ayentra.cloud import (
+    DEFAULT_CLOUD_URL,
+    UPGRADE_URL,
+    get_credits,
+    is_gating_enforced,
+    resolve_credentials,
+    save_credentials,
+    verify_receipt,
+)
 from ayentra.contracts import load_toml_invariants
 from ayentra.dogfood import (
     print_dogfood_receipt,
@@ -695,8 +704,8 @@ def build_parser() -> argparse.ArgumentParser:
         "-v",
         "--version",
         action="version",
-        version=f"%(prog)s {__version__}",
-        help="Show ayentra version and exit",
+        version="ayentra (universal backend invariant verification and deterministic repair)",
+        help="Show ayentra information and exit",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -726,6 +735,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Simulate PR bot lifecycle offline using mock PR event metadata file path or inline JSON",
     )
+    check_p.add_argument("--api-key", default=None, help="Ayentra API key (or set via AYENTRA_API_KEY / AYENTRA_LICENSE_KEY)")
 
     sug_p = sub.add_parser("suggest-invariants", help="Analyze AST to suggest candidate invariants for developer review")
     sug_p.add_argument("target", help="Path to target Python file")
@@ -735,12 +745,14 @@ def build_parser() -> argparse.ArgumentParser:
     ver_p.add_argument("--candidate-file", default=None, help="Optional path to candidate patched Python file")
     ver_p.add_argument("--seed", type=int, default=42, help="Deterministic seed (default: 42)")
     ver_p.add_argument("--max-examples", type=int, default=120, help="Max property examples (default: 120)")
+    ver_p.add_argument("--api-key", default=None, help="Ayentra API key (or set via AYENTRA_API_KEY / AYENTRA_LICENSE_KEY)")
 
     app_p = sub.add_parser("apply-patch", help="Synthesize, verify in 3-stage sandbox, and optionally apply a verified candidate fix")
     app_p.add_argument("target", help="Path to target Python file")
     app_p.add_argument("--seed", type=int, default=42, help="Deterministic seed (default: 42)")
     app_p.add_argument("--max-examples", type=int, default=120, help="Max property examples (default: 120)")
     app_p.add_argument("--yes", action="store_true", help="Write verified candidate fix to target file on disk")
+    app_p.add_argument("--api-key", default=None, help="Ayentra API key (or set via AYENTRA_API_KEY / AYENTRA_LICENSE_KEY)")
 
     stu_p = sub.add_parser("studio", help="Launch local browser verification inspector in soft neutral light theme")
     stu_p.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
@@ -784,6 +796,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Simulate PR bot lifecycle offline using mock PR event metadata file path or inline JSON",
     )
+    pr_p.add_argument("--api-key", default=None, help="Ayentra API key (or set via AYENTRA_API_KEY / AYENTRA_LICENSE_KEY)")
 
     demo_p = sub.add_parser("demo", help="Run interactive guided terminal walkthrough through real-world dogfood targets")
     demo_p.add_argument("--seed", type=int, default=42, help="Deterministic seed (default: 42)")
@@ -794,7 +807,18 @@ def build_parser() -> argparse.ArgumentParser:
     init_p.add_argument("--force", action="store_true", help="Overwrite existing ayentra.toml and CI workflow files if present")
     init_p.add_argument("--ci", action="store_true", help="Scaffold .github/workflows/ayentra.yml for GitHub Actions CI")
 
-    version_p = sub.add_parser("version", help="Show ayentra version and exit")
+    auth_p = sub.add_parser("auth", help="Manage Ayentra Cloud Control Plane authentication")
+    auth_sub = auth_p.add_subparsers(dest="auth_command", required=True)
+    login_p = auth_sub.add_parser("login", help="Authenticate using Ayentra API key or License Key")
+    login_p.add_argument("--key", default=None, help="Ayentra API key (ay_live_...) or License Key")
+    status_p = auth_sub.add_parser("status", help="Show active license tier, credit balance, and entitlements")
+
+    credits_p = sub.add_parser("credits", help="Check remaining CI credits, monthly limits, and active plan tier")
+
+    rec_p = sub.add_parser("verify-receipt", help="Verify Ed25519 signature of an ayentra-receipt.json document")
+    rec_p.add_argument("receipt", help="Path to ayentra-receipt.json file")
+
+    version_p = sub.add_parser("version", help="Show ayentra information and exit")
 
     return parser
 
@@ -1161,6 +1185,40 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return 2
 
         target_path = Path(args.target).resolve()
+        api_key = resolve_credentials(getattr(args, "api_key", None))
+
+        if target_path.is_dir():
+            if is_gating_enforced() and not api_key:
+                console.print(
+                    "[bold red]License Required (Ayentra Team):[/bold red] Multi-file directory CI gates "
+                    "require an active Ayentra Team ($249/mo) or Scale license key.\n"
+                    "Free tier covers single-file offline property verification (`ayentra check <file.py>`).\n"
+                    f"Upgrade at {UPGRADE_URL}"
+                )
+                return 3
+
+        if getattr(args, "sarif", None) or getattr(args, "format", "default") == "sarif":
+            if is_gating_enforced() and not api_key:
+                console.print(
+                    "[bold red]License Required (Ayentra Team):[/bold red] OASIS SARIF 2.1.0 exports "
+                    f"require an active Ayentra Team ($249/mo) or Scale license key.\nUpgrade at {UPGRADE_URL}"
+                )
+                return 3
+
+        if getattr(args, "pr_comment", None) or getattr(args, "format", "default") == "pr-comment":
+            if is_gating_enforced() and not api_key:
+                console.print(
+                    "[bold red]License Required (Ayentra Team):[/bold red] Automated PR review bot comments "
+                    f"require an active Ayentra Team ($249/mo) or Scale license key.\nUpgrade at {UPGRADE_URL}"
+                )
+                return 3
+
+        if not target_path.is_dir() and is_gating_enforced() and not api_key and args.max_examples > 120:
+            console.print(
+                f"[dim]Note: Free offline runner is capped at 120 property examples. Up to 2,000 examples requires Ayentra Team / Scale. Upgrade at {UPGRADE_URL}[/dim]"
+            )
+            args.max_examples = 120
+
         if target_path.is_dir():
             files = [f for f in _discover_check_files(target_path) if _has_explicit_invariants(f)]
             any_violations = False
@@ -1291,6 +1349,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 max_examples=args.max_examples,
                 repair_hook=args.repair_hook,
             )
+        except PermissionError as perm_err:
+            console.print(f"[bold red]License Required:[/bold red] {perm_err}")
+            return 3
         except SyntaxError as e:
             console.print(f"[bold red]Syntax Error:[/bold red] Failed to parse {target_path.as_posix()}: {e}")
             return 2
@@ -1409,6 +1470,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             console.print(f"[bold red]Error:[/bold red] Target file not found: {args.target}")
             return 2
 
+        if not args.candidate_file:
+            api_key = resolve_credentials(getattr(args, "api_key", None))
+            if is_gating_enforced() and not api_key:
+                console.print(
+                    "[bold red]License Required (Ayentra Scale):[/bold red] Autonomous AST patch synthesis "
+                    "requires an active Ayentra Scale ($999/mo) or Enterprise license key.\n"
+                    f"Pass --candidate-file to verify your own candidate patch for free, or upgrade at {UPGRADE_URL}"
+                )
+                return 3
+
         engine_res = run_verification_engine(target_path, seed_val=args.seed, max_examples=args.max_examples)
         if not engine_res.violations:
             console.print("[bold green]Target file already passes all explicit invariants.[/bold green]")
@@ -1447,6 +1518,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         if not target_path.is_file():
             console.print(f"[bold red]Error:[/bold red] Target file not found: {args.target}")
             return 2
+
+        api_key = resolve_credentials(getattr(args, "api_key", None))
+        if is_gating_enforced() and not api_key:
+            console.print(
+                "[bold red]License Required (Ayentra Scale):[/bold red] 3-Gate AST Auto-Repair Synthesizer "
+                f"requires an active Ayentra Scale ($999/mo) or Enterprise license key.\nUpgrade at {UPGRADE_URL}"
+            )
+            return 3
 
         _, engine_res, patch_results = execute_full_check(
             target_path,
@@ -1512,6 +1591,24 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
     if args.command == "pr-mock":
+        if getattr(args, "sarif", None):
+            api_key = resolve_credentials(getattr(args, "api_key", None))
+            if is_gating_enforced() and not api_key:
+                console.print(
+                    "[bold red]License Required (Ayentra Team):[/bold red] OASIS SARIF 2.1.0 exports "
+                    f"require an active Ayentra Team ($249/mo) or Scale license key.\nUpgrade at {UPGRADE_URL}"
+                )
+                return 3
+
+        if getattr(args, "pr_comment", None):
+            api_key = resolve_credentials(getattr(args, "api_key", None))
+            if is_gating_enforced() and not api_key:
+                console.print(
+                    "[bold red]License Required (Ayentra Team):[/bold red] Automated PR review bot comments "
+                    f"require an active Ayentra Team ($249/mo) or Scale license key.\nUpgrade at {UPGRADE_URL}"
+                )
+                return 3
+
         mock_pr_val = getattr(args, "mock_pr_event", None)
         mock_event_data = None
         if mock_pr_val is not None:
@@ -1623,8 +1720,141 @@ def main(argv: Sequence[str] | None = None) -> int:
             console=console,
         )
 
+    if args.command == "auth":
+        if args.auth_command == "login":
+            key = args.key
+            if not key:
+                console.print("[bold yellow]Enter Ayentra API Key or License Key:[/bold yellow] ", end="")
+                try:
+                    key = input().strip()
+                except (EOFError, KeyboardInterrupt):
+                    console.print("\n[bold red]Aborted login.[/bold red]")
+                    return 2
+            if not key:
+                console.print("[bold red]Error:[/bold red] API Key or License Key cannot be empty.")
+                return 2
+
+            saved_path = save_credentials(key, tier="team")
+            masked = key[:6] + "..." + key[-4:] if len(key) > 10 else "***"
+            console.print(f"[bold green]Authentication Successful:[/bold green] Credentials saved to {saved_path.as_posix()} ({masked})")
+            return 0
+
+        elif args.auth_command == "status":
+            token = resolve_credentials()
+            if not token:
+                console.print(
+                    Panel(
+                        "Plan Tier: [bold green]Developer (Open-Core Free)[/bold green]\n"
+                        "CI Credits: [bold]Unlimited single-file offline property verification[/bold]\n"
+                        "Status: [yellow]Unauthenticated (No AYENTRA_API_KEY detected)[/yellow]\n"
+                        "Gated Features: Directory CI gates, Concurrency Scheduler, Auto-Repair Synthesizer, SARIF\n\n"
+                        f"Upgrade to Team ($249/mo) or Scale ($999/mo) at [cyan]{UPGRADE_URL}[/cyan]",
+                        title="[bold]Ayentra Plan Status[/bold]",
+                        border_style="cyan",
+                    )
+                )
+                return 0
+
+            masked = token[:6] + "..." + token[-4:] if len(token) > 10 else "***"
+            try:
+                credit_info = get_credits(token)
+                tier = credit_info.get("tier", "team").capitalize()
+                remaining = credit_info.get("credits_remaining", "Active")
+                limit = credit_info.get("monthly_limit", "Active")
+                entitlements = ", ".join(credit_info.get("entitlements", ["ci_gate", "sarif_export"]))
+                details = (
+                    f"Plan Tier: [bold green]Ayentra {tier}[/bold green]\n"
+                    f"Token: [dim]{masked}[/dim]\n"
+                    f"Credits Remaining: [bold]{remaining}[/bold] / {limit}\n"
+                    f"Entitlements: [cyan]{entitlements}[/cyan]\n"
+                    f"Control Plane: [dim]{DEFAULT_CLOUD_URL}[/dim]"
+                )
+            except Exception:
+                details = (
+                    f"Plan Tier: [bold green]Ayentra Team / Scale[/bold green]\n"
+                    f"Token: [dim]{masked}[/dim]\n"
+                    "Status: [bold green]Active Credential Configured[/bold green]\n"
+                    f"Control Plane: [dim]{DEFAULT_CLOUD_URL}[/dim]"
+                )
+
+            console.print(Panel(details, title="[bold]Ayentra Plan Status[/bold]", border_style="green"))
+            return 0
+
+    if args.command == "credits":
+        token = resolve_credentials()
+        if not token:
+            console.print(
+                Panel(
+                    "Plan Tier: [bold green]Developer (Open-Core Free)[/bold green]\n"
+                    "CI Credits: [bold]Unlimited single-file offline property verification[/bold]\n"
+                    f"Upgrade to Team ($249/mo) or Scale ($999/mo) at [cyan]{UPGRADE_URL}[/cyan]",
+                    title="[bold]Ayentra CI Credits[/bold]",
+                    border_style="cyan",
+                )
+            )
+            return 0
+        try:
+            credit_info = get_credits(token)
+            tier = credit_info.get("tier", "team").capitalize()
+            remaining = credit_info.get("credits_remaining", 1000)
+            limit = credit_info.get("monthly_limit", 1000)
+            console.print(
+                Panel(
+                    f"Tier: [bold green]Ayentra {tier}[/bold green]\n"
+                    f"Credits Remaining: [bold]{remaining}[/bold] / {limit}\n"
+                    f"Portal: [cyan]{DEFAULT_CLOUD_URL}/portal[/cyan]",
+                    title="[bold]Ayentra CI Credits[/bold]",
+                    border_style="green",
+                )
+            )
+        except Exception:
+            console.print(
+                Panel(
+                    "Tier: [bold green]Ayentra Licensed[/bold green]\n"
+                    "Credits Remaining: [bold]Active[/bold]\n"
+                    f"Portal: [cyan]{DEFAULT_CLOUD_URL}/portal[/cyan]",
+                    title="[bold]Ayentra CI Credits[/bold]",
+                    border_style="green",
+                )
+            )
+        return 0
+
+    if args.command == "verify-receipt":
+        rec_path = Path(args.receipt)
+        if not rec_path.is_file():
+            console.print(f"[bold red]Error:[/bold red] Receipt file not found: {args.receipt}")
+            return 2
+        try:
+            res = verify_receipt(rec_path)
+            if res.get("verified"):
+                console.print(
+                    Panel(
+                        f"Receipt: [bold]{rec_path.name}[/bold]\n"
+                        f"Signature Status: [bold green]VERIFIED[/bold green]\n"
+                        f"Key ID: [dim]{res.get('key_id', 'ayentra-ed25519-2026-11')}[/dim]\n"
+                        f"Message: {res.get('message', 'Valid signature')}",
+                        title="[bold green]Ayentra Receipt Verification[/bold green]",
+                        border_style="green",
+                    )
+                )
+                return 0
+            else:
+                console.print(
+                    Panel(
+                        f"Receipt: [bold]{rec_path.name}[/bold]\n"
+                        f"Signature Status: [bold red]FAIL[/bold red]\n"
+                        f"Reason: {res.get('message', 'Invalid signature')}",
+                        title="[bold red]Ayentra Receipt Verification[/bold red]",
+                        border_style="red",
+                    )
+                )
+                return 1
+        except Exception as e:
+            console.print(f"[bold red]Verification Error:[/bold red] {e}")
+            return 1
+
     if args.command == "version":
-        console.print(f"ayentra {__version__}")
+        console.print("ayentra (universal backend invariant verification and deterministic repair)")
         return 0
 
     return 0
